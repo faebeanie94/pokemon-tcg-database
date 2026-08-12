@@ -67,7 +67,8 @@ CREATE TABLE cards (
     number_prefix TEXT,              -- alpha part, for sorting
     number_value  INTEGER,           -- numeric part, for sorting
     name          TEXT NOT NULL,     -- card name in that language
-    name_en       TEXT,              -- English name, where the source provides one
+    name_en       TEXT,              -- English name, from the source or derived
+    name_en_source TEXT,             -- 'source' or 'pokeapi' when the name was derived
     rarity        TEXT,              -- only populated by sources that carry it
     card_type     TEXT,
     card_id       TEXT,              -- source identifier, e.g. 'sv01-001'
@@ -87,6 +88,8 @@ CREATE INDEX idx_cards_set         ON cards (set_uid);
 CREATE INDEX idx_cards_language    ON cards (language);
 CREATE INDEX idx_cards_name        ON cards (name);
 CREATE INDEX idx_cards_number      ON cards (number);
+CREATE INDEX idx_cards_number_value ON cards (number_value);
+CREATE INDEX idx_cards_lookup      ON cards (set_uid, number_prefix, number_value);
 
 -- Flat, spreadsheet-shaped view: one row per card with its set context.
 CREATE VIEW cards_full AS

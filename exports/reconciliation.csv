@@ -29,7 +29,6 @@ no card list,en,Johto League Champions,,2001-11-01,database.xlsx
 no card list,en,Energize Your Game Cycle 2002,EN02,2002-01-01,database.xlsx
 no card list,en,Sample,sp,2002-08-01,tcgdex
 no card list,en,Advanced,,2003-05-01,database.xlsx
-no card list,en,Advanced Challenge,,2004-06-01,database.xlsx
 no card list,en,WC Deck 2004 (Blaziken Tech),,2004-11-01,database.xlsx
 no card list,en,WC Deck 2004 (Magma Spirit),,2004-11-01,database.xlsx
 no card list,en,WC Deck 2004 (Rocky Beach),,2004-11-01,database.xlsx
@@ -83,8 +82,7 @@ no card list,en,WC Deck 2013 (American Gothic),,2013-11-04,database.xlsx
 no card list,en,WC Deck 2013 (Anguille Sous Roche),,2013-11-04,database.xlsx
 no card list,en,WC Deck 2013 (Darkrai),,2013-11-04,database.xlsx
 no card list,en,WC Deck 2013 (Ultimate Team Plasma),,2013-11-04,database.xlsx
-no card list,en,Legendary Treasures (Radiant Collection),LTR,2013-11-06,database.xlsx
-no card list,en,Radiant Collection,rc,2013-11-06,tcgdex
+no card list,en,Legendary Treasures (Radiant Collection),LTR,2013-11-06,"database.xlsx,tcgdex"
 no card list,en,WC Deck 2014 (Crazy Punch),,2014-11-01,database.xlsx
 no card list,en,WC Deck 2014 (Emerald King),,2014-11-01,database.xlsx
 no card list,en,WC Deck 2014 (Plasma Power),,2014-11-01,database.xlsx
@@ -110,7 +108,6 @@ no card list,en,WC Deck 2018 (Garbanette),,2018-11-14,database.xlsx
 no card list,en,WC Deck 2018 (Victory Map),,2018-11-14,database.xlsx
 no card list,en,2019 Energies,EN19,2019-02-01,database.xlsx
 no card list,en,McDonald's Collection 2019 (French),M19F,2019-10-30,database.xlsx
-no card list,en,Sword & Shield Promos,SSP,2019-11-15,database.xlsx
 no card list,en,WC Deck 2019 (Fire Box),,2019-11-22,database.xlsx
 no card list,en,WC Deck 2019 (Mind Blown),,2019-11-22,database.xlsx
 no card list,en,WC Deck 2019 (Perfection),,2019-11-22,database.xlsx
@@ -123,7 +120,6 @@ no card list,en,2022 Energies,EN22,2022-02-25,database.xlsx
 no card list,en,Battle Academy 2022 (Cinderace),,2022-05-25,database.xlsx
 no card list,en,Battle Academy 2022 (Eevee),,2022-05-25,database.xlsx
 no card list,en,Battle Academy 2022 (Pikachu),,2022-05-25,database.xlsx
-no card list,en,McDonald's Match Battle 2022,M22,2022-08-03,database.xlsx
 no card list,en,Holiday Calendar 2022,,2022-09-01,database.xlsx
 no card list,en,Trick or Trade 2022,,2022-09-01,database.xlsx
 no card list,en,Play! Pokémon Prize Pack Series One,,2022-11-09,database.xlsx
@@ -155,7 +151,6 @@ no card list,en,Battle Academy 2024 (Pikachu),,2024-06-21,database.xlsx
 no card list,en,Play! Pokémon Prize Pack Series Five,,2024-08-14,database.xlsx
 no card list,en,Holiday Calendar 2024,,2024-08-23,database.xlsx
 no card list,en,Trick or Trade 2024,,2024-08-30,database.xlsx
-no card list,en,McDonald's Dragon Discovery 2024,M24,2024-12-04,database.xlsx
 no card list,en,Play! Pokémon Prize Pack Series Six,,2025-02-14,database.xlsx
 no card list,en,Gym Series Two,,2025-03-28,database.xlsx
 no card list,en,WC Deck 2024 (Ancient Toolbox),,2025-05-16,database.xlsx
@@ -363,23 +358,17 @@ no card list,it,Gran Festa Collezione Classica,CEL:CC,2021-10-08,tcgdex
 no card list,it,Sorgenti Recondite,A4a,2025-08-28,tcgdex
 no card list,it,Fiamme Cremisi,B1a,2025-12-17,tcgdex
 no card list,it,Parata Fantasmagorica,B2,2026-01-29,tcgdex
-no card list,ja,Expansion Pack,,1996-10-20,database.xlsx
-no card list,ja,Pokémon Jungle,,1997-03-05,database.xlsx
-no card list,ja,Mystery of the Fossils,,1997-06-21,database.xlsx
-no card list,ja,Team Rocket,,1997-11-21,database.xlsx
 no card list,ja,Vending Machine Series 1 (Blue),,1998-03-23,database.xlsx
 no card list,ja,Hanada City Gym Deck,,1998-04-26,database.xlsx
 no card list,ja,Nivi City Gym Deck,,1998-04-26,database.xlsx
 no card list,ja,Vending Machine Series 2 (Red),,1998-06-17,database.xlsx
 no card list,ja,Kuchiba City Gym Deck,,1998-07-25,database.xlsx
 no card list,ja,Tamamushi City Gym Deck,,1998-07-25,database.xlsx
-no card list,ja,Leaders' Stadium,,1998-10-24,database.xlsx
 no card list,ja,Vending Machine Series 3 (Green),,1998-11-24,database.xlsx
 no card list,ja,Quick Starter Gift Set (Green),,1998-12-04,database.xlsx
 no card list,ja,Quick Starter Gift Set (Red),,1998-12-04,database.xlsx
 no card list,ja,Guren Town Gym Deck,,1999-02-26,database.xlsx
 no card list,ja,Yamabuki City Gym Deck,,1999-02-26,database.xlsx
-no card list,ja,Challenge from the Darkness,,1999-06-25,database.xlsx
 no card list,ja,Southern Islands,,1999-07-17,database.xlsx
 no card list,ja,Intro Pack (Bulbasaur),,1999-07-30,database.xlsx
 no card list,ja,Intro Pack (Squirtle),,1999-07-30,database.xlsx
@@ -395,16 +384,12 @@ no card list,ja,Intro Pack Neo (Totodile),,2001-04-06,database.xlsx
 no card list,ja,P Promos,,2001-07-01,database.xlsx
 no card list,ja,J Promos,,2001-08-01,database.xlsx
 no card list,ja,Pokémon VS,,2001-08-19,database.xlsx
-no card list,ja,Pokémon Web,,2001-10-20,database.xlsx
 no card list,ja,Base Expansion Pack,,2001-12-01,database.xlsx
 no card list,ja,Pokémon-e Starter Deck,,2001-12-01,database.xlsx
 no card list,ja,T Promos,,2002-01-01,database.xlsx
 no card list,ja,McDonald's Pokémon-e Minimum Pack,,2002-01-26,database.xlsx
-no card list,ja,The Town on No Map,,2002-03-08,database.xlsx
-no card list,ja,Wind from the Sea,,2002-05-24,database.xlsx
 no card list,ja,Theater Limited VS Pack,,2002-07-13,database.xlsx
 no card list,ja,Split Earth,,2002-08-01,database.xlsx
-no card list,ja,Mysterious Mountains,,2002-10-04,database.xlsx
 no card list,ja,ADV Promos,,2003-01-01,database.xlsx
 no card list,ja,PLAY Promos,,2003-01-01,database.xlsx
 no card list,ja,ADV Expansion Pack,,2003-01-31,database.xlsx
@@ -412,8 +397,7 @@ no card list,ja,Mudkip Constructed Starter Deck,,2003-01-31,database.xlsx
 no card list,ja,Torchic Constructed Starter Deck,,2003-01-31,database.xlsx
 no card list,ja,Treecko Constructed Starter Deck,,2003-01-31,database.xlsx
 no card list,ja,拡張パック,ADV1,2003-01-31,tcgdex
-no card list,ja,Miracle of the Desert,,2003-04-18,database.xlsx
-no card list,ja,砂漠のきせき,ADV2,2003-04-18,tcgdex
+no card list,ja,Miracle of the Desert,ADV2,2003-04-18,"database.xlsx,tcgdex"
 no card list,ja,Flygon Constructed Starter Deck,,2003-06-25,database.xlsx
 no card list,ja,Rulers of the Heavens,,2003-06-25,database.xlsx
 no card list,ja,Salamence Constructed Starter Deck,,2003-06-25,database.xlsx
@@ -430,7 +414,6 @@ no card list,ja,Undone Seal,,2004-01-16,database.xlsx
 no card list,ja,とかれた封印,ADV5,2004-01-16,tcgdex
 no card list,ja,PCG Promos,,2004-02-01,database.xlsx
 no card list,ja,"Venusaur, Charizard & Blastoise Random Constructed Starter Decks",,2004-03-19,database.xlsx
-no card list,ja,Flight of Legends,,2004-04-09,database.xlsx
 no card list,ja,Clash of the Blue Sky,,2004-07-01,database.xlsx
 no card list,ja,Deoxys Constructed Starter Deck,,2004-07-01,database.xlsx
 no card list,ja,Rayquaza Constructed Starter Deck,,2004-07-01,database.xlsx
@@ -451,7 +434,6 @@ no card list,ja,Meganium Constructed Starter Deck,,2005-03-05,database.xlsx
 no card list,ja,Typhlosion Constructed Starter Deck,,2005-03-05,database.xlsx
 no card list,ja,PokéPark Blue,,2005-03-18,database.xlsx
 no card list,ja,PokéPark Forest,,2005-03-18,database.xlsx
-no card list,ja,"Golden Sky, Silvery Ocean",,2005-04-08,database.xlsx
 no card list,ja,Mirage Forest,,2005-06-30,database.xlsx
 no card list,ja,Mirage's Mew Constructed Starter Deck,,2005-06-30,database.xlsx
 no card list,ja,Master Kit (Bulbasaur),,2005-07-15,database.xlsx
@@ -461,16 +443,13 @@ no card list,ja,Movie Commemoration VS Pack: Aura's Lucario,,2005-07-16,database
 no card list,ja,Holon Research Tower Fire Quarter Deck,,2005-09-30,database.xlsx
 no card list,ja,Holon Research Tower Lightning Quarter Deck,,2005-09-30,database.xlsx
 no card list,ja,Holon Research Tower Water Quarter Deck,,2005-09-30,database.xlsx
-no card list,ja,Holon Research Tower,,2005-10-28,database.xlsx
 no card list,ja,Mew • Lucario Gift Box (Crawdaunt),,2005-11-16,database.xlsx
 no card list,ja,Mew • Lucario Gift Box (Lucario),,2005-11-16,database.xlsx
 no card list,ja,Mew • Lucario Gift Box (Mew),,2005-11-16,database.xlsx
 no card list,ja,Mew • Lucario Gift Box (Mightyena),,2005-11-16,database.xlsx
 no card list,ja,Mew • Lucario Gift Box (Pokémon ☆),,2005-11-16,database.xlsx
-no card list,ja,Holon Phantom,,2006-01-27,database.xlsx
 no card list,ja,Earth's Groudon ex Constructed Starter Deck,,2006-03-03,database.xlsx
 no card list,ja,Ocean's Kyogre ex Constructed Starter Deck,,2006-03-03,database.xlsx
-no card list,ja,Miracle Crystal,,2006-03-10,database.xlsx
 no card list,ja,Imprison! Gardevoir ex Constructed Standard Deck,,2006-06-29,database.xlsx
 no card list,ja,Offense and Defense of the Furthest Ends,,2006-06-29,database.xlsx
 no card list,ja,Shockwave! Tyranitar ex Constructed Standard Deck,,2006-06-29,database.xlsx
@@ -673,8 +652,7 @@ no card list,ja,Trainer Battle Decks,SMK,2019-01-25,database.xlsx
 no card list,ja,Full Metal Wall,SM9b,2019-02-01,"database.xlsx,tcgdex"
 no card list,ja,Tag Team GX Deck Build Box,SMN,2019-03-01,database.xlsx
 no card list,ja,Sun & Moon Family Pokémon Card Game,SML,2019-03-15,database.xlsx
-no card list,ja,GG End,SM10a,2019-04-05,database.xlsx
-no card list,ja,ジージーエンド,sn10a,2019-04-05,tcgdex
+no card list,ja,GG End,SM10a,2019-04-05,"database.xlsx,tcgdex"
 no card list,ja,Great Detective Pikachu,SMP2,2019-04-26,"database.xlsx,tcgdex"
 no card list,ja,Sky Legend,SM10b,2019-04-26,"database.xlsx,tcgdex"
 no card list,ja,Miracle Twin,SM11,2019-05-31,database.xlsx

@@ -192,8 +192,7 @@ English,Nintendo Promos,Nintendo Promos,NP,2003,2003-09-01,EX Series,40,40,"data
 English,EX Sandstorm,EX Sandstorm,SS,2003,2003-09-17,EX Series,100,100,"database.xlsx,tcgdex"
 English,EX Dragon,EX Dragon,DR,2003,2003-11-24,EX Series,97,100,"database.xlsx,tcgdex"
 English,EX Team Magma vs Team Aqua,EX Team Magma vs Team Aqua,MA,2004,2004-03-15,EX Series,95,97,"database.xlsx,tcgdex"
-English,Advanced Challenge,Advanced Challenge,,2004,2004-06-01,Topps Series,,0,database.xlsx
-English,Hidden Legends,,HL,2004,2004-06-01,EX,101,102,tcgdex
+English,Advanced Challenge,Advanced Challenge,HL,2004,2004-06-01,Topps Series,101,102,"database.xlsx,tcgdex"
 English,EX Trainer Kit (Latias),EX Trainer Kit (Latias),TK1A,2004,2004-07-01,Trainer & Deck Kits,10,10,"database.xlsx,tcgdex"
 English,EX Trainer Kit (Latios),EX Trainer Kit (Latios),TK1O,2004,2004-07-01,Trainer & Deck Kits,10,10,"database.xlsx,tcgdex"
 English,Poké Card Creator Pack,Poké Card Creator Pack,PCP,2004,2004-07-01,Other,5,5,"database.xlsx,tcgdex"
@@ -314,8 +313,7 @@ English,WC Deck 2013 (Anguille Sous Roche),WC Deck 2013 (Anguille Sous Roche),,2
 English,WC Deck 2013 (Darkrai),WC Deck 2013 (Darkrai),,2013,2013-11-04,World Championships Decks,,0,database.xlsx
 English,WC Deck 2013 (Ultimate Team Plasma),WC Deck 2013 (Ultimate Team Plasma),,2013,2013-11-04,World Championships Decks,,0,database.xlsx
 English,Legendary Treasures,Legendary Treasures,LTR,2013,2013-11-06,Black & White Series,113,140,"database.xlsx,tcgdex"
-English,Legendary Treasures (Radiant Collection),Legendary Treasures (Radiant Collection),LTR,2013,2013-11-06,Black & White Series,,0,database.xlsx
-English,Radiant Collection,,rc,2013,2013-11-06,Black & White,25,0,tcgdex
+English,Legendary Treasures (Radiant Collection),Legendary Treasures (Radiant Collection),LTR,2013,2013-11-06,Black & White Series,25,0,"database.xlsx,tcgdex"
 English,Kalos Starter Set,Kalos Starter Set,KSS,2013,2013-11-08,XY Series,39,39,"database.xlsx,tcgdex"
 English,XY,XY,XY,2014,2014-02-05,XY Series,146,146,"database.xlsx,tcgdex"
 English,Yellow A Alternate,Yellow A Alternate,xya,2014,2014-02-05,Other,6,6,"database.xlsx,tcgdex"
@@ -391,8 +389,7 @@ English,Hidden Fates (Shiny Vault),Hidden Fates (Shiny Vault),HIF,2019,2019-08-2
 English,McDonald's Collection 2019,McDonald's Collection 2019,M19,2019,2019-10-15,McDonald's Series,12,12,"database.xlsx,tcgdex"
 English,McDonald's Collection 2019 (French),McDonald's Collection 2019 (French),M19F,2019,2019-10-30,McDonald's Series,,0,database.xlsx
 English,Cosmic Eclipse,Cosmic Eclipse,CEC,2019,2019-11-01,Sun & Moon Series,236,271,"database.xlsx,tcgdex"
-English,SWSH Black Star Promos,,swshp,2019,2019-11-15,Sword & Shield,307,302,tcgdex
-English,Sword & Shield Promos,Sword & Shield Promos,SSP,2019,2019-11-15,Sword & Shield Series,,0,database.xlsx
+English,Sword & Shield Promos,Sword & Shield Promos,SSP,2019,2019-11-15,Sword & Shield Series,307,302,"database.xlsx,tcgdex"
 English,WC Deck 2019 (Fire Box),WC Deck 2019 (Fire Box),,2019,2019-11-22,World Championships Decks,,0,database.xlsx
 English,WC Deck 2019 (Mind Blown),WC Deck 2019 (Mind Blown),,2019,2019-11-22,World Championships Decks,,0,database.xlsx
 English,WC Deck 2019 (Perfection),WC Deck 2019 (Perfection),,2019,2019-11-22,World Championships Decks,,0,database.xlsx
@@ -425,8 +422,7 @@ English,Battle Academy 2022 (Pikachu),Battle Academy 2022 (Pikachu),,2022,2022-0
 English,Astral Radiance,Astral Radiance,ASR,2022,2022-05-27,Sword & Shield Series,189,216,"database.xlsx,tcgdex"
 English,Astral Radiance (Trainer Gallery),Astral Radiance (Trainer Gallery),ASR,2022,2022-05-27,Sword & Shield Series,30,30,"database.xlsx,tcgdex"
 English,Pokémon GO,Pokémon GO,PGO,2022,2022-07-01,Sword & Shield Series,78,88,"database.xlsx,tcgdex"
-English,McDonald's Collection 2022,,MCD22,2022,2022-08-03,McDonald's Collection,15,15,tcgdex
-English,McDonald's Match Battle 2022,McDonald's Match Battle 2022,M22,2022,2022-08-03,McDonald's Series,,0,database.xlsx
+English,McDonald's Match Battle 2022,McDonald's Match Battle 2022,M22,2022,2022-08-03,McDonald's Series,15,15,"database.xlsx,tcgdex"
 English,Holiday Calendar 2022,Holiday Calendar 2022,,2022,2022-09-01,Other,,0,database.xlsx
 English,Trick or Trade 2022,Trick or Trade 2022,,2022,2022-09-01,Other,,0,database.xlsx
 English,Lost Origin,Lost Origin,LOR,2022,2022-09-09,Sword & Shield Series,196,217,"database.xlsx,tcgdex"
@@ -481,8 +477,7 @@ English,Stellar Crown,Stellar Crown,SCR,2024,2024-09-13,Scarlet & Violet Series,
 English,Genetic Apex,,A1,2024,2024-10-30,Pokémon TCG Pocket,226,286,tcgdex
 English,Promos-A,,P-A,2024,2024-10-30,Pokémon TCG Pocket,0,100,tcgdex
 English,Surging Sparks,Surging Sparks,SSP,2024,2024-11-08,Scarlet & Violet Series,191,252,"database.xlsx,tcgdex"
-English,McDonald's Collection 2024,,MCD24,2024,2024-12-04,McDonald's Collection,15,15,tcgdex
-English,McDonald's Dragon Discovery 2024,McDonald's Dragon Discovery 2024,M24,2024,2024-12-04,McDonald's Series,,0,database.xlsx
+English,McDonald's Dragon Discovery 2024,McDonald's Dragon Discovery 2024,M24,2024,2024-12-04,McDonald's Series,15,15,"database.xlsx,tcgdex"
 English,Mythical Island,,A1a,2024,2024-12-17,Pokémon TCG Pocket,68,86,tcgdex
 English,Prismatic Evolutions,Prismatic Evolutions,PRE,2025,2025-01-17,Scarlet & Violet Series,131,180,"database.xlsx,tcgdex"
 English,Space-Time Smackdown,,A2,2025,2025-01-30,Pokémon TCG Pocket,140,207,tcgdex
@@ -1151,29 +1146,23 @@ Italian,Paldean Wonders,,B2a,2026,2026-02-26,Gioco di Carte Collezionabili Poké
 Italian,Equilibrio Perfetto,,POR,2026,2026-03-27,Megaevoluzione,88,124,tcgdex
 Italian,Caos Nascente,,CRI,2026,2026-05-22,Megaevoluzione,86,122,tcgdex
 Italian,Buio Pesto,,PBL,2026,2026-07-17,Megaevoluzione,84,120,tcgdex
-Japanese,Expansion Pack,Expansion Pack,,1996,1996-10-20,Original Era,,0,database.xlsx
-Japanese,拡張パック,,PMCG1,1996,1996-10-20,ポケットモンスターカードゲーム,102,102,tcgdex
-Japanese,Pokémon Jungle,Pokémon Jungle,,1997,1997-03-05,Original Era,,0,database.xlsx
-Japanese,ポケモンジャングル,,PMCG2,1997,1997-03-05,ポケットモンスターカードゲーム,48,48,tcgdex
-Japanese,Mystery of the Fossils,Mystery of the Fossils,,1997,1997-06-21,Original Era,,0,database.xlsx
-Japanese,化石の秘密,,PMCG3,1997,1997-06-21,ポケットモンスターカードゲーム,48,48,tcgdex
-Japanese,Team Rocket,Team Rocket,,1997,1997-11-21,Original Era,,0,database.xlsx
-Japanese,ロケット団,,PMCG4,1997,1997-11-21,ポケットモンスターカードゲーム,65,65,tcgdex
+Japanese,拡張パック,Expansion Pack,PMCG1,1996,1996-10-20,Original Era,102,102,"database.xlsx,tcgdex"
+Japanese,ポケモンジャングル,Pokémon Jungle,PMCG2,1997,1997-03-05,Original Era,48,48,"database.xlsx,tcgdex"
+Japanese,化石の秘密,Mystery of the Fossils,PMCG3,1997,1997-06-21,Original Era,48,48,"database.xlsx,tcgdex"
+Japanese,ロケット団,Team Rocket,PMCG4,1997,1997-11-21,Original Era,65,65,"database.xlsx,tcgdex"
 Japanese,Vending Machine Series 1 (Blue),Vending Machine Series 1 (Blue),,1998,1998-03-23,Vending Machine Series,,0,database.xlsx
 Japanese,Hanada City Gym Deck,Hanada City Gym Deck,,1998,1998-04-26,Original Era,,0,database.xlsx
 Japanese,Nivi City Gym Deck,Nivi City Gym Deck,,1998,1998-04-26,Original Era,,0,database.xlsx
 Japanese,Vending Machine Series 2 (Red),Vending Machine Series 2 (Red),,1998,1998-06-17,Vending Machine Series,,0,database.xlsx
 Japanese,Kuchiba City Gym Deck,Kuchiba City Gym Deck,,1998,1998-07-25,Original Era,,0,database.xlsx
 Japanese,Tamamushi City Gym Deck,Tamamushi City Gym Deck,,1998,1998-07-25,Original Era,,0,database.xlsx
-Japanese,Leaders' Stadium,Leaders' Stadium,,1998,1998-10-24,Original Era,,0,database.xlsx
-Japanese,リーダーズスタジアム,,PMCG5,1998,1998-10-24,ポケットモンスターカードゲーム,96,96,tcgdex
+Japanese,リーダーズスタジアム,Leaders' Stadium,PMCG5,1998,1998-10-24,Original Era,96,96,"database.xlsx,tcgdex"
 Japanese,Vending Machine Series 3 (Green),Vending Machine Series 3 (Green),,1998,1998-11-24,Vending Machine Series,,0,database.xlsx
 Japanese,Quick Starter Gift Set (Green),Quick Starter Gift Set (Green),,1998,1998-12-04,Original Era,,0,database.xlsx
 Japanese,Quick Starter Gift Set (Red),Quick Starter Gift Set (Red),,1998,1998-12-04,Original Era,,0,database.xlsx
 Japanese,Guren Town Gym Deck,Guren Town Gym Deck,,1999,1999-02-26,Original Era,,0,database.xlsx
 Japanese,Yamabuki City Gym Deck,Yamabuki City Gym Deck,,1999,1999-02-26,Original Era,,0,database.xlsx
-Japanese,Challenge from the Darkness,Challenge from the Darkness,,1999,1999-06-25,Original Era,,0,database.xlsx
-Japanese,闇からの挑戦,,PMCG6,1999,1999-06-25,ポケットモンスターカードゲーム,98,98,tcgdex
+Japanese,闇からの挑戦,Challenge from the Darkness,PMCG6,1999,1999-06-25,Original Era,98,98,"database.xlsx,tcgdex"
 Japanese,Southern Islands,Southern Islands,,1999,1999-07-17,Other,,0,database.xlsx
 Japanese,Intro Pack (Bulbasaur),Intro Pack (Bulbasaur),,1999,1999-07-30,Original Era,,0,database.xlsx
 Japanese,Intro Pack (Squirtle),Intro Pack (Squirtle),,1999,1999-07-30,Original Era,,0,database.xlsx
@@ -1194,22 +1183,18 @@ Japanese,P Promos,P Promos,,2001,2001-07-01,e-Card Era,,0,database.xlsx
 Japanese,ポケモンカード★VS,,VS1,2001,2001-07-19,VS,141,143,tcgdex
 Japanese,J Promos,J Promos,,2001,2001-08-01,e-Card Era,,0,database.xlsx
 Japanese,Pokémon VS,Pokémon VS,,2001,2001-08-19,VS Era,,0,database.xlsx
-Japanese,Pokémon Web,Pokémon Web,,2001,2001-10-20,Web Era,,0,database.xlsx
-Japanese,ポケモンカード★web,,web1,2001,2001-10-20,web,48,47,tcgdex
+Japanese,ポケモンカード★web,Pokémon Web,web1,2001,2001-10-20,Web Era,48,47,"database.xlsx,tcgdex"
 Japanese,Base Expansion Pack,Base Expansion Pack,,2001,2001-12-01,e-Card Era,,0,database.xlsx
 Japanese,Pokémon-e Starter Deck,Pokémon-e Starter Deck,,2001,2001-12-01,e-Card Era,,0,database.xlsx
 Japanese,基本拡張パック,,E1,2001,2001-12-01,ポケモンカードe,128,128,tcgdex
 Japanese,T Promos,T Promos,,2002,2002-01-01,Other,,0,database.xlsx
 Japanese,McDonald's Pokémon-e Minimum Pack,McDonald's Pokémon-e Minimum Pack,,2002,2002-01-26,Other,,0,database.xlsx
-Japanese,The Town on No Map,The Town on No Map,,2002,2002-03-08,e-Card Era,,0,database.xlsx
-Japanese,地図にない町,,E2,2002,2002-03-08,ポケモンカードe,92,92,tcgdex
-Japanese,Wind from the Sea,Wind from the Sea,,2002,2002-05-24,e-Card Era,,0,database.xlsx
-Japanese,海からの風,,E3,2002,2002-05-24,ポケモンカードe,87,90,tcgdex
+Japanese,地図にない町,The Town on No Map,E2,2002,2002-03-08,e-Card Era,92,92,"database.xlsx,tcgdex"
+Japanese,海からの風,Wind from the Sea,E3,2002,2002-05-24,e-Card Era,87,90,"database.xlsx,tcgdex"
 Japanese,Theater Limited VS Pack,Theater Limited VS Pack,,2002,2002-07-13,Movie Commemorations,,0,database.xlsx
 Japanese,Split Earth,Split Earth,,2002,2002-08-01,e-Card Era,,0,database.xlsx
 Japanese,裂けた大地,,E4,2002,2002-08-23,ポケモンカードe,88,91,tcgdex
-Japanese,Mysterious Mountains,Mysterious Mountains,,2002,2002-10-04,e-Card Era,,0,database.xlsx
-Japanese,神秘なる山,,E5,2002,2002-10-04,ポケモンカードe,88,91,tcgdex
+Japanese,神秘なる山,Mysterious Mountains,E5,2002,2002-10-04,e-Card Era,88,91,"database.xlsx,tcgdex"
 Japanese,ADV Promos,ADV Promos,,2003,2003-01-01,ADV Era,,0,database.xlsx
 Japanese,PLAY Promos,PLAY Promos,,2003,2003-01-01,Other,,0,database.xlsx
 Japanese,ADV Expansion Pack,ADV Expansion Pack,,2003,2003-01-31,ADV Era,,0,database.xlsx
@@ -1217,8 +1202,7 @@ Japanese,Mudkip Constructed Starter Deck,Mudkip Constructed Starter Deck,,2003,2
 Japanese,Torchic Constructed Starter Deck,Torchic Constructed Starter Deck,,2003,2003-01-31,ADV Era,,0,database.xlsx
 Japanese,Treecko Constructed Starter Deck,Treecko Constructed Starter Deck,,2003,2003-01-31,ADV Era,,0,database.xlsx
 Japanese,拡張パック,,ADV1,2003,2003-01-31,ADV,55,0,tcgdex
-Japanese,Miracle of the Desert,Miracle of the Desert,,2003,2003-04-18,ADV Era,,0,database.xlsx
-Japanese,砂漠のきせき,,ADV2,2003,2003-04-18,ADV,53,0,tcgdex
+Japanese,砂漠のきせき,Miracle of the Desert,ADV2,2003,2003-04-18,ADV Era,53,0,"database.xlsx,tcgdex"
 Japanese,Flygon Constructed Starter Deck,Flygon Constructed Starter Deck,,2003,2003-06-25,ADV Era,,0,database.xlsx
 Japanese,Rulers of the Heavens,Rulers of the Heavens,,2003,2003-06-25,ADV Era,,0,database.xlsx
 Japanese,Salamence Constructed Starter Deck,Salamence Constructed Starter Deck,,2003,2003-06-25,ADV Era,,0,database.xlsx
@@ -1235,8 +1219,7 @@ Japanese,Undone Seal,Undone Seal,,2004,2004-01-16,ADV Era,,0,database.xlsx
 Japanese,とかれた封印,,ADV5,2004,2004-01-16,ADV,83,0,tcgdex
 Japanese,PCG Promos,PCG Promos,,2004,2004-02-01,PCG Era,,0,database.xlsx
 Japanese,"Venusaur, Charizard & Blastoise Random Constructed Starter Decks","Venusaur, Charizard & Blastoise Random Constructed Starter Decks",,2004,2004-03-19,PCG Era,,0,database.xlsx
-Japanese,Flight of Legends,Flight of Legends,,2004,2004-04-09,PCG Era,,0,database.xlsx
-Japanese,伝説の飛翔,,PCG1,2004,2004-04-09,PCG,82,82,tcgdex
+Japanese,伝説の飛翔,Flight of Legends,PCG1,2004,2004-04-09,PCG Era,82,82,"database.xlsx,tcgdex"
 Japanese,Clash of the Blue Sky,Clash of the Blue Sky,,2004,2004-07-01,PCG Era,,0,database.xlsx
 Japanese,Deoxys Constructed Starter Deck,Deoxys Constructed Starter Deck,,2004,2004-07-01,PCG Era,,0,database.xlsx
 Japanese,Rayquaza Constructed Starter Deck,Rayquaza Constructed Starter Deck,,2004,2004-07-01,PCG Era,,0,database.xlsx
@@ -1259,8 +1242,7 @@ Japanese,Meganium Constructed Starter Deck,Meganium Constructed Starter Deck,,20
 Japanese,Typhlosion Constructed Starter Deck,Typhlosion Constructed Starter Deck,,2005,2005-03-05,PCG Era,,0,database.xlsx
 Japanese,PokéPark Blue,PokéPark Blue,,2005,2005-03-18,Other,,0,database.xlsx
 Japanese,PokéPark Forest,PokéPark Forest,,2005,2005-03-18,Other,,0,database.xlsx
-Japanese,"Golden Sky, Silvery Ocean","Golden Sky, Silvery Ocean",,2005,2005-04-08,PCG Era,,0,database.xlsx
-Japanese,金の空、銀の海,,PCG4,2005,2005-04-08,PCG,106,106,tcgdex
+Japanese,金の空、銀の海,"Golden Sky, Silvery Ocean",PCG4,2005,2005-04-08,PCG Era,106,106,"database.xlsx,tcgdex"
 Japanese,Mirage Forest,Mirage Forest,,2005,2005-06-30,PCG Era,,0,database.xlsx
 Japanese,Mirage's Mew Constructed Starter Deck,Mirage's Mew Constructed Starter Deck,,2005,2005-06-30,PCG Era,,0,database.xlsx
 Japanese,まぼろしの森,,PCG5,2005,2005-06-30,PCG,86,86,tcgdex
@@ -1271,19 +1253,16 @@ Japanese,Movie Commemoration VS Pack: Aura's Lucario,Movie Commemoration VS Pack
 Japanese,Holon Research Tower Fire Quarter Deck,Holon Research Tower Fire Quarter Deck,,2005,2005-09-30,PCG Era,,0,database.xlsx
 Japanese,Holon Research Tower Lightning Quarter Deck,Holon Research Tower Lightning Quarter Deck,,2005,2005-09-30,PCG Era,,0,database.xlsx
 Japanese,Holon Research Tower Water Quarter Deck,Holon Research Tower Water Quarter Deck,,2005,2005-09-30,PCG Era,,0,database.xlsx
-Japanese,Holon Research Tower,Holon Research Tower,,2005,2005-10-28,PCG Era,,0,database.xlsx
-Japanese,ホロンの研究塔,,PCG6,2005,2005-10-28,PCG,86,86,tcgdex
+Japanese,ホロンの研究塔,Holon Research Tower,PCG6,2005,2005-10-28,PCG Era,86,86,"database.xlsx,tcgdex"
 Japanese,Mew • Lucario Gift Box (Crawdaunt),Mew • Lucario Gift Box (Crawdaunt),,2005,2005-11-16,PCG Era,,0,database.xlsx
 Japanese,Mew • Lucario Gift Box (Lucario),Mew • Lucario Gift Box (Lucario),,2005,2005-11-16,PCG Era,,0,database.xlsx
 Japanese,Mew • Lucario Gift Box (Mew),Mew • Lucario Gift Box (Mew),,2005,2005-11-16,PCG Era,,0,database.xlsx
 Japanese,Mew • Lucario Gift Box (Mightyena),Mew • Lucario Gift Box (Mightyena),,2005,2005-11-16,PCG Era,,0,database.xlsx
 Japanese,Mew • Lucario Gift Box (Pokémon ☆),Mew • Lucario Gift Box (Pokémon ☆),,2005,2005-11-16,PCG Era,,0,database.xlsx
-Japanese,Holon Phantom,Holon Phantom,,2006,2006-01-27,PCG Era,,0,database.xlsx
-Japanese,ホロンの幻影,,PCG7,2006,2006-01-27,PCG,52,52,tcgdex
+Japanese,ホロンの幻影,Holon Phantom,PCG7,2006,2006-01-27,PCG Era,52,52,"database.xlsx,tcgdex"
 Japanese,Earth's Groudon ex Constructed Starter Deck,Earth's Groudon ex Constructed Starter Deck,,2006,2006-03-03,PCG Era,,0,database.xlsx
 Japanese,Ocean's Kyogre ex Constructed Starter Deck,Ocean's Kyogre ex Constructed Starter Deck,,2006,2006-03-03,PCG Era,,0,database.xlsx
-Japanese,Miracle Crystal,Miracle Crystal,,2006,2006-03-10,PCG Era,,0,database.xlsx
-Japanese,きせきの結晶,,PCG8,2006,2006-03-10,PCG,75,75,tcgdex
+Japanese,きせきの結晶,Miracle Crystal,PCG8,2006,2006-03-10,PCG Era,75,75,"database.xlsx,tcgdex"
 Japanese,Imprison! Gardevoir ex Constructed Standard Deck,Imprison! Gardevoir ex Constructed Standard Deck,,2006,2006-06-29,PCG Era,,0,database.xlsx
 Japanese,Offense and Defense of the Furthest Ends,Offense and Defense of the Furthest Ends,,2006,2006-06-29,PCG Era,,0,database.xlsx
 Japanese,Shockwave! Tyranitar ex Constructed Standard Deck,Shockwave! Tyranitar ex Constructed Standard Deck,,2006,2006-06-29,PCG Era,,0,database.xlsx
@@ -1489,8 +1468,7 @@ Japanese,フルメタルウォール,Full Metal Wall,SM9b,2019,2019-02-01,Sun & 
 Japanese,Tag Team GX Deck Build Box,Tag Team GX Deck Build Box,SMN,2019,2019-03-01,Sun & Moon Era,,0,database.xlsx
 Japanese,ダブルブレイズ,Double Blaze,SM10,2019,2019-03-01,Sun & Moon Era,95,116,"database.xlsx,tcgdex"
 Japanese,Sun & Moon Family Pokémon Card Game,Sun & Moon Family Pokémon Card Game,SML,2019,2019-03-15,Sun & Moon Era,,0,database.xlsx
-Japanese,GG End,GG End,SM10a,2019,2019-04-05,Sun & Moon Era,,0,database.xlsx
-Japanese,ジージーエンド,,sn10a,2019,2019-04-05,サン＆ムーン,54,0,tcgdex
+Japanese,ジージーエンド,GG End,SM10a,2019,2019-04-05,Sun & Moon Era,54,0,"database.xlsx,tcgdex"
 Japanese,スカイレジェンド,Sky Legend,SM10b,2019,2019-04-26,Sun & Moon Era,56,0,"database.xlsx,tcgdex"
 Japanese,名探偵ピカチュウ,Great Detective Pikachu,SMP2,2019,2019-04-26,Sun & Moon Era,24,0,"database.xlsx,tcgdex"
 Japanese,Miracle Twin,Miracle Twin,SM11,2019,2019-05-31,Sun & Moon Era,,0,database.xlsx

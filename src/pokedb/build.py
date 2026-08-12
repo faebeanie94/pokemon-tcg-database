@@ -55,6 +55,26 @@ def _set_row(canonical, source_order: list[str]) -> dict[str, Any]:
     }
 
 
+def _derive_english_names(card_rows: list[dict[str, Any]]) -> int:
+    """Fill in English card names for languages that only ship a local name."""
+    from .translate import load_translator
+
+    translator = load_translator()
+    if translator is None:
+        return 0
+
+    derived = 0
+    for row in card_rows:
+        if row.get("name_en") or not translator.supports(row["language"]):
+            continue
+        english = translator.english_name(row["language"], row["name"])
+        if english:
+            row["name_en"] = english
+            row["name_en_source"] = "pokeapi"
+            derived += 1
+    return derived
+
+
 def build(db_path: Path = DB_PATH) -> dict[str, Any]:
     sources: list[SourceData] = load_all()
     if not sources:
@@ -72,6 +92,7 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
 
     all_cards = [card for data in sources for card in data.cards]
     card_rows, orphans = merge_cards(all_cards, registry, source_order)
+    derived_names = _derive_english_names(card_rows)
 
     BUILD.mkdir(parents=True, exist_ok=True)
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -128,6 +149,7 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
             "SELECT COUNT(*) FROM sets WHERE source_count > 1"
         ).fetchone()[0],
         "linked_by_release_date": date_links,
+        "english_names_derived": derived_names,
         "orphan_cards": len(orphans),
     }
 

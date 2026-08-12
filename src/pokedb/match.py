@@ -186,7 +186,13 @@ class SetRegistry:
                 or "set"
             )
             base = f"{canonical.language}:{slugify(str(code))}"
+            # Codes are reused across eras, so a colliding set is disambiguated
+            # by its release year: that keeps identifiers stable between builds
+            # regardless of the order the sources were processed in.
             uid = base
+            if uid in used:
+                year = release_year(canonical.first(self.source_order, "release_date"))
+                uid = f"{base}-{year}" if year else base
             counter = 2
             while uid in used:
                 uid = f"{base}-{counter}"
@@ -230,6 +236,7 @@ def merge_cards(
                 "number_value": value,
                 "name": record.name,
                 "name_en": record.name_en,
+                "name_en_source": "source" if record.name_en else None,
                 "rarity": record.rarity,
                 "card_type": record.card_type,
                 "card_id": record.card_id,
@@ -241,6 +248,8 @@ def merge_cards(
         for attribute in ("name_en", "rarity", "card_type", "card_id", "image_url"):
             if not existing[attribute]:
                 existing[attribute] = getattr(record, attribute)
+                if attribute == "name_en" and existing[attribute]:
+                    existing["name_en_source"] = "source"
         if record.source not in existing["sources"].split(","):
             existing["sources"] += f",{record.source}"
 
