@@ -35,3 +35,9 @@ Standard scripts are defined in `package.json` (`dev`, `build`, `start`,
 - The data-access layer in `src/lib/cards.ts` takes a `Database` instance as an
   argument, which is what makes it unit-testable with an in-memory DB in
   `src/lib/cards.test.ts`.
+- **Do not run `pnpm build` while `pnpm dev` is running.** They share the
+  `.next` directory, and a production build clobbers the dev server's chunks,
+  causing runtime `500`s like `Cannot find module './NNN.js'`. If this happens,
+  stop the dev server, `rm -rf .next`, and restart `pnpm dev`. Run `pnpm build`
+  only when the dev server is stopped (or accept that you must restart dev
+  afterward).
