@@ -168,6 +168,12 @@ It loads the source spreadsheets into its own catalog at `data/catalog.db`:
 identifies a printing — language, set, collector number, printed total, name,
 and the English name where a source provides one. No rarity, type, HP or images.
 
+The console at `/` has two modes. **Identify** takes what is printed on a card
+and shows the ranked candidates with the reason each matched, through the same
+`/api/match` endpoint the grading program calls. **Browse** pages through the
+catalog by name, set and collector number, for when a card has to be found by
+working through a set instead.
+
 ## Getting started
 
 Requires Node.js 22+ and pnpm.
