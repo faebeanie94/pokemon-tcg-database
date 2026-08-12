@@ -1,0 +1,15 @@
+.git
+.github
+.venv
+node_modules
+.next
+out
+build
+data
+exports
+tests
+**/__pycache__
+*.pyc
+.idea
+src/app
+src/lib
