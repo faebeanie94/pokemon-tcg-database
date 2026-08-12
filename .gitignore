@@ -1,7 +1,33 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# local sqlite database (generated at runtime from seed data)
+/data/*.db
+/data/*.db-wal
+/data/*.db-shm
+
+# python
 .venv/
 __pycache__/
 *.pyc
-build/
+
+# downloaded source data (re-fetched by `python -m pokedb fetch`)
 data/raw/
-~$*.xlsx
+
+# misc
+.DS_Store
+*.log
+.env*.local
 .idea/
+~$*.xlsx

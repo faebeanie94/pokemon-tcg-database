@@ -1,16 +1,26 @@
-# Pokemon TCG Card Database
+# pokemon-tcg-database
 
-Every official Pokemon Trading Card Game set and card, in every language it has
-been printed in, as **one Excel workbook** and a **JSON API**.
+Every official Pokémon Trading Card Game set and card, in every language it has
+been printed in, plus the tools to browse and serve it.
 
-Built for card identification at grading intake: find a card from the set name,
-the number printed on it, the card name and the year it was released.
+| Part | What it is | Start here |
+| --- | --- | --- |
+| **Card data** | A pipeline that merges the public sources into one Excel workbook and a JSON lookup API. Built for card identification at grading intake. | [Card data](#card-data) |
+| **Web app** | A Next.js app for browsing, searching and cataloging cards. | [Web app](#web-app) |
+| **Export scripts** | The standalone scripts (`api's/`) that produced the spreadsheets in this repo. | [Export scripts](#export-scripts) |
+
+---
+
+# Card data
+
+2,206 sets and 144,851 cards across 16 languages, as **one Excel workbook** and
+a **JSON API**. Find a card from the set name, the number printed on it, the
+card name and the year it was released.
 
 | | |
 |---|---|
 | Workbook | [`exports/Pokemon_TCG_Card_Database.xlsx`](exports/Pokemon_TCG_Card_Database.xlsx) |
-| Coverage | 2,206 sets and 144,851 cards across 16 languages |
-| Refresh | `python -m pokedb update`, a scheduled GitHub Action, or the API's own timer |
+| Refresh | `python -m pokedb update`, or the API's own timer |
 
 ## The workbook
 
@@ -29,7 +39,7 @@ numbered above it is a secret rare.
 The workbook is regenerated from scratch on every update, so corrections belong
 in the source spreadsheets (below), not in the output file.
 
-## The API
+## The lookup API
 
 ```bash
 pip install -r requirements.txt
@@ -76,7 +86,7 @@ trigger a rebuild on demand with `POST /v1/admin/refresh` (bearer
 | [TCGdex](https://tcgdex.dev) API | Card lists for 16 languages, set codes and release dates |
 | `database.xlsx` | Hand-curated master set list (English, Japanese, Simplified Chinese) with abbreviations and release dates |
 | `pikaqian_cards.xlsx` | Simplified Chinese cards - 12,323 of them, against 877 in the API |
-| [PokeAPI](https://pokeapi.co) species names | English names for cards printed in Japanese, Chinese, Korean and the European languages |
+| [PokéAPI](https://pokeapi.co) species names | English names for cards printed in Japanese, Chinese, Korean and the European languages |
 | `tcgdex_cards.xlsx` | Not imported; `python -m pokedb verify` checks it against the API to catch cards the API has dropped |
 
 The same set is described differently by each source, so sets are linked by
@@ -120,3 +130,74 @@ Card lists are complete for English and the main European languages, and thin
 for Japanese, Korean, Thai and Indonesian, where the public sources only carry
 part of the catalogue. `python -m pokedb report` prints the current state and
 `exports/reconciliation.csv` lists every set that has no card list yet.
+
+---
+
+# Web app
+
+A small full-stack web app for browsing, searching, and cataloging Pokémon
+Trading Card Game cards. Built with **Next.js (App Router) + TypeScript**, a
+**SQLite** database (via `better-sqlite3`), and **Tailwind CSS**.
+
+> The app currently reads its own seeded catalog at `data/pokemon.db`, separate
+> from the card data above. Pointing it at `build/pokemon_tcg.sqlite` is not
+> done yet - see [#2](https://github.com/faebeanie94/pokemon-tcg-database/pull/2).
+
+## Features
+
+- Browse a seeded catalog of Pokémon TCG cards
+- Search by card name or set
+- Filter by energy type
+- Add new cards through a form (with server-side validation)
+- JSON API under `/api/cards`
+
+## Tech stack
+
+| Layer      | Choice                                   |
+| ---------- | ---------------------------------------- |
+| Framework  | Next.js 15 (App Router)                  |
+| Language   | TypeScript                               |
+| Database   | SQLite (`better-sqlite3`)                |
+| Styling    | Tailwind CSS                             |
+| Tests      | Vitest                                   |
+| Lint       | ESLint (`eslint-config-next`)            |
+
+## Getting started
+
+Requires Node.js 22+ and pnpm.
+
+```bash
+pnpm install        # install dependencies
+pnpm dev            # start the dev server at http://localhost:3000
+```
+
+The SQLite database is created automatically at `data/pokemon.db` on first
+run and seeded with a starter set of cards.
+
+## Scripts
+
+| Command       | Description                              |
+| ------------- | ---------------------------------------- |
+| `pnpm dev`    | Start the development server (port 3000) |
+| `pnpm build`  | Production build                         |
+| `pnpm start`  | Run the production build                 |
+| `pnpm lint`   | Run ESLint                               |
+| `pnpm test`   | Run the Vitest test suite                |
+
+## API
+
+| Method | Route             | Description                             |
+| ------ | ----------------- | --------------------------------------- |
+| GET    | `/api/cards`      | List cards (`?search=` and `?type=`)    |
+| POST   | `/api/cards`      | Create a card                           |
+| GET    | `/api/cards/:id`  | Fetch a single card                     |
+
+---
+
+# Export scripts
+
+`api's/` holds the standalone scripts that produced the spreadsheets in this
+repo: `tcgdex_export.py` (which wrote `tcgdex_cards.xlsx`),
+`pikaqian_export.py` (`pikaqian_cards.xlsx`), plus exporters for pokemontcg.io
+and PokeWallet with resumable checkpoints. They run independently of the
+`pokedb` pipeline, which fetches from TCGdex itself.
