@@ -1,263 +1,289 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Card } from "@/lib/cards";
-import { CARD_TYPES, RARITIES } from "@/lib/cards";
-import { typeColor } from "@/lib/typeColors";
+import type { CatalogCard } from "@/lib/catalog";
+import type { MatchResponse } from "@/lib/match";
 
-interface FormState {
-  name: string;
-  set: string;
-  type: string;
-  rarity: string;
-  hp: string;
+/**
+ * Operator console for the grading workflow: type what is printed on the card,
+ * see the catalog rows it could be. The same /api/match endpoint the grading
+ * program calls backs this page, so what an operator sees here is what the
+ * program gets.
+ */
+
+interface LanguageOption {
+  language: string;
+  card_count: number;
 }
 
-const EMPTY_FORM: FormState = {
-  name: "",
-  set: "",
-  type: "Colorless",
-  rarity: "Common",
-  hp: "",
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  fr: "French",
+  es: "Spanish",
+  it: "Italian",
+  pt: "Portuguese",
+  "pt-br": "Portuguese (Brazil)",
+  de: "German",
+  ja: "Japanese",
+  ko: "Korean",
+  "zh-tw": "Chinese (Traditional)",
+  "zh-cn": "Chinese (Simplified)",
+  id: "Indonesian",
+  th: "Thai",
 };
 
-export default function Home() {
-  const [cards, setCards] = useState<Card[]>([]);
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+const EXAMPLES = ["Charizard 4/102", "BS 4", "base1-4", "SV1a 001", "リザードン"];
 
-  const fetchCards = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    if (typeFilter) params.set("type", typeFilter);
-    const res = await fetch(`/api/cards?${params.toString()}`);
-    const data = await res.json();
-    setCards(data.cards ?? []);
-    setLoading(false);
-  }, [search, typeFilter]);
+export default function Home() {
+  const [query, setQuery] = useState("");
+  const [language, setLanguage] = useState("");
+  const [languages, setLanguages] = useState<LanguageOption[]>([]);
+  const [totalCards, setTotalCards] = useState<number | null>(null);
+  const [result, setResult] = useState<MatchResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(fetchCards, 200);
-    return () => clearTimeout(timer);
-  }, [fetchCards]);
+    fetch("/api/languages")
+      .then((res) => res.json())
+      .then((data) => {
+        setLanguages(data.languages ?? []);
+        setTotalCards(data.totalCards ?? 0);
+      })
+      .catch(() => setError("Could not load catalog languages."));
+  }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
-    setFormError(null);
-    const res = await fetch("/api/cards", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    setSubmitting(false);
-    if (!res.ok) {
-      setFormError(data.error ?? "Something went wrong");
+  const runMatch = useCallback(async () => {
+    if (!query.trim()) {
+      setResult(null);
       return;
     }
-    setForm(EMPTY_FORM);
-    await fetchCards();
-  }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, language: language || undefined, limit: 25 }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Match failed.");
+        setResult(null);
+        return;
+      }
+      setResult(data as MatchResponse);
+    } catch {
+      setError("Match request failed.");
+    } finally {
+      setLoading(false);
+    }
+  }, [query, language]);
+
+  useEffect(() => {
+    const timer = setTimeout(runMatch, 250);
+    return () => clearTimeout(timer);
+  }, [runMatch]);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <header className="mb-8 flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full border-4 border-pokeblueDark bg-pokeyellow text-2xl">
-          ⚡
-        </div>
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-pokeblueDark">
-            Pokémon TCG Database
-          </h1>
-          <p className="text-sm text-slate-500">
-            Browse, search, and catalog your Trading Card Game collection.
-          </p>
-        </div>
+      <header className="mb-8">
+        <h1 className="text-2xl font-black tracking-tight text-pokeblueDark">
+          Card lookup
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Identify a card from what is printed on it: name, collector number,
+          set code, or a source card ID.
+          {totalCards !== null && (
+            <> {totalCards.toLocaleString()} printings in the catalog.</>
+          )}
+        </p>
       </header>
 
-      <section className="mb-8 grid gap-4 rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm md:grid-cols-[1fr_auto]">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by card name or set…"
-          aria-label="Search cards"
-          className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue focus:ring-2 focus:ring-pokeblue/30"
-        />
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          aria-label="Filter by type"
-          className="rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue"
-        >
-          <option value="">All types</option>
-          {CARD_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
+      <section className="mb-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-[1fr_240px]">
+        <div>
+          <label
+            htmlFor="lookup"
+            className="mb-1 block text-sm font-medium text-slate-600"
+          >
+            Card
+          </label>
+          <input
+            id="lookup"
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Charizard 4/102"
+            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue focus:ring-2 focus:ring-pokeblue/30"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="language"
+            className="mb-1 block text-sm font-medium text-slate-600"
+          >
+            Language
+          </label>
+          <select
+            id="language"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue"
+          >
+            <option value="">Any language</option>
+            {languages.map((l) => (
+              <option key={l.language} value={l.language}>
+                {LANGUAGE_NAMES[l.language] ?? l.language} (
+                {l.card_count.toLocaleString()})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:col-span-2">
+          <span>Try:</span>
+          {EXAMPLES.map((example) => (
+            <button
+              key={example}
+              type="button"
+              onClick={() => setQuery(example)}
+              className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
+            >
+              {example}
+            </button>
           ))}
-        </select>
+        </div>
       </section>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-700">
-              Cards{" "}
-              <span className="text-sm font-normal text-slate-400">
-                ({cards.length})
-              </span>
-            </h2>
-          </div>
+      {error && (
+        <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          {error}
+        </p>
+      )}
 
-          {loading ? (
-            <p className="text-slate-400">Loading…</p>
-          ) : cards.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
-              No cards match your search.
-            </p>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {cards.map((card) => (
-                <li
-                  key={card.id}
-                  data-testid="card-item"
-                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-slate-800">{card.name}</h3>
-                    {card.hp != null && (
-                      <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
-                        {card.hp} HP
-                      </span>
-                    )}
-                  </div>
-                  <p className="mb-3 text-sm text-slate-500">{card.set}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span
-                      className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${typeColor(
-                        card.type
-                      )}`}
-                    >
-                      {card.type}
-                    </span>
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                      {card.rarity}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      {result && <Interpretation result={result} loading={loading} />}
 
-        <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-lg font-bold text-slate-700">Add a card</h2>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <Field label="Name">
-              <input
-                required
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="input"
-                placeholder="e.g. Gengar"
-              />
-            </Field>
-            <Field label="Set">
-              <input
-                required
-                value={form.set}
-                onChange={(e) => setForm({ ...form, set: e.target.value })}
-                className="input"
-                placeholder="e.g. Fossil"
-              />
-            </Field>
-            <Field label="Type">
-              <select
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="input"
-              >
-                {CARD_TYPES.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Rarity">
-              <select
-                value={form.rarity}
-                onChange={(e) => setForm({ ...form, rarity: e.target.value })}
-                className="input"
-              >
-                {RARITIES.map((r) => (
-                  <option key={r}>{r}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="HP (optional)">
-              <input
-                type="number"
-                min={0}
-                value={form.hp}
-                onChange={(e) => setForm({ ...form, hp: e.target.value })}
-                className="input"
-                placeholder="e.g. 60"
-              />
-            </Field>
+      {result && result.candidates.length > 0 && (
+        <ol className="space-y-2">
+          {result.candidates.map((candidate, index) => (
+            <CandidateRow
+              key={candidate.card.id}
+              card={candidate.card}
+              score={candidate.score}
+              matchedOn={candidate.matchedOn}
+              best={index === 0 && result.unambiguous}
+            />
+          ))}
+        </ol>
+      )}
 
-            {formError && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-                {formError}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full rounded-lg bg-pokeblue px-4 py-2.5 font-semibold text-white transition hover:bg-pokeblueDark disabled:opacity-60"
-            >
-              {submitting ? "Adding…" : "Add card"}
-            </button>
-          </form>
-        </aside>
-      </div>
-
-      <style jsx>{`
-        :global(.input) {
-          width: 100%;
-          border-radius: 0.5rem;
-          border: 1px solid rgb(203 213 225);
-          padding: 0.5rem 0.75rem;
-          outline: none;
-        }
-        :global(.input:focus) {
-          border-color: #3d7dca;
-          box-shadow: 0 0 0 2px rgba(61, 125, 202, 0.25);
-        }
-      `}</style>
+      {result && result.candidates.length === 0 && !loading && (
+        <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
+          Nothing in the catalog matches that.
+        </p>
+      )}
     </main>
   );
 }
 
-function Field({
-  label,
-  children,
+function Interpretation({
+  result,
+  loading,
 }: {
-  label: string;
-  children: React.ReactNode;
+  result: MatchResponse;
+  loading: boolean;
+}) {
+  const { interpretation: read } = result;
+  const parts: string[] = [];
+  if (read.cardId) parts.push(`card ID ${read.cardId}`);
+  if (read.name) parts.push(`name "${read.name}"`);
+  if (read.number) parts.push(`number ${read.number}`);
+  if (read.printedTotal) parts.push(`printed total ${read.printedTotal}`);
+  for (const set of read.sets) {
+    parts.push(
+      `set "${set.token}" (${set.setIds.length} ${
+        set.setIds.length === 1 ? "set" : "sets"
+      })`
+    );
+  }
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+      <span className="text-slate-500">
+        Read as: {parts.length ? parts.join(", ") : "free text"}
+      </span>
+      {loading && <span className="text-slate-400">searching…</span>}
+      {!loading && (
+        <span
+          className={
+            result.unambiguous
+              ? "rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700"
+              : "rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700"
+          }
+        >
+          {result.unambiguous ? "single confident match" : "needs a decision"}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function CandidateRow({
+  card,
+  score,
+  matchedOn,
+  best,
+}: {
+  card: CatalogCard;
+  score: number;
+  matchedOn: string[];
+  best: boolean;
 }) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-600">
-        {label}
-      </span>
-      {children}
-    </label>
+    <li
+      className={`rounded-xl border bg-white p-4 shadow-sm ${
+        best ? "border-emerald-300 ring-1 ring-emerald-200" : "border-slate-200"
+      }`}
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <span className="font-bold text-slate-800">{card.name}</span>
+          {card.english_name && card.english_name !== card.name && (
+            <span className="ml-2 text-sm text-slate-500">
+              {card.english_name}
+            </span>
+          )}
+        </div>
+        <span className="text-xs font-semibold text-slate-400">score {score}</span>
+      </div>
+
+      <div className="mt-1 text-sm text-slate-600">
+        <span className="font-medium">{card.set_name}</span>
+        {card.set_abbreviation && (
+          <span className="text-slate-400"> ({card.set_abbreviation})</span>
+        )}
+        <span className="text-slate-400"> · </span>
+        <span>
+          #{card.card_number}
+          {card.printed_total ? `/${card.printed_total}` : ""}
+        </span>
+        <span className="text-slate-400"> · </span>
+        <span className="uppercase">{card.language}</span>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+        <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">
+          {card.source}:{card.source_card_id}
+        </code>
+        {matchedOn.map((reason) => (
+          <span
+            key={reason}
+            className="rounded-full border border-slate-200 px-2 py-0.5 text-slate-500"
+          >
+            {reason}
+          </span>
+        ))}
+      </div>
+    </li>
   );
 }

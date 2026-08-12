@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pokémon TCG Database",
-  description: "Browse, search, and catalog Pokémon Trading Card Game cards.",
+  title: "Pokémon TCG Card Catalog",
+  description:
+    "Multi-language Pokémon TCG card lookup and matching for card grading.",
 };
 
 export default function RootLayout({
