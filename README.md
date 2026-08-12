@@ -64,6 +64,17 @@ English set name (`Surging Sparks`) or a local one (`スカーレットex`), and
 number written as `4`, `004` or `004/198`. Exact set matches rank above partial
 ones.
 
+### Deploying it
+
+```bash
+docker compose up -d          # http://localhost:8000
+```
+
+The first boot builds the database before serving, which takes a few minutes;
+after that it is cached in a volume. The image has not been built and run in CI
+yet, so treat the compose file as a starting point rather than a tested
+deployment.
+
 ### Keeping it up to date
 
 The service rebuilds itself on a timer - `POKEDB_REFRESH_HOURS` (default 24) -
@@ -111,6 +122,9 @@ python -m pokedb export    # write the workbook and CSVs
 python -m pokedb report    # coverage and source disagreements
 python -m pokedb verify    # check tcgdex_cards.xlsx against the API
 ```
+
+Tests: `pip install -r requirements-dev.txt && pytest`. They use a small
+in-memory dataset, so they need no network access.
 
 Also written: `exports/sets.csv`, `exports/cards.csv.gz` (for loading into
 another system) and `exports/reconciliation.csv` (sets with no card list, and
