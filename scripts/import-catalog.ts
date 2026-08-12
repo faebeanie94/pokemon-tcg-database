@@ -172,7 +172,7 @@ interface SheetHandler {
 function pickHandler(header: string[]): SheetHandler | null {
   const has = (...cols: string[]) => cols.every((c) => header.includes(c));
 
-  if (has("language", "set_id", "card_number", "card_id", "name")) {
+  if (has("language", "set_id", "card_number", "id", "name")) {
     return TCGDEX_CARDS;
   }
   if (has("language", "set_id", "set_name", "release_date")) {
@@ -197,10 +197,10 @@ const TCGDEX_CARDS: SheetHandler = {
   label: "TCGdex cards",
   write(db, rows, summary) {
     const cards: CatalogCardInput[] = rows
-      .filter((r) => r.card_id && r.name)
+      .filter((r) => r.id && r.name)
       .map((r) => ({
         source: "tcgdex",
-        source_card_id: r.card_id,
+        source_card_id: r.id,
         language: r.language,
         set_id: r.set_id,
         set_name: r.set_name,

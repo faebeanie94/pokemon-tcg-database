@@ -12,19 +12,24 @@
 *.tsbuildinfo
 next-env.d.ts
 
-# local sqlite database (generated at runtime from seed data)
+# local sqlite databases (built from the source spreadsheets, not committed)
 /data/*.db
 /data/*.db-wal
 /data/*.db-shm
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# downloaded source data (re-fetched by `python -m pokedb fetch`)
+data/raw/
 
 # misc
 .DS_Store
 *.log
 .env*.local
+~$*.xlsx
 
 # editor settings
-/.idea/
-
-# python virtualenv for the export scripts in apis/
-/.venv/
-__pycache__/
+.idea/

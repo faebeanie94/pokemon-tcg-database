@@ -11,7 +11,11 @@ The columns are chosen for card *identification* (the fields a grader can
 read off a physical card), not for gameplay data:
 
     language, set_id, set_name, set_abbreviation, series_name,
-    printed_total, card_number, card_id, name, english_name
+    printed_total, card_number, id, name, english_name
+
+`id` is TCGdex's own card identifier. It keeps that name because
+`python -m pokedb verify` reads this column to compare the workbook against a
+fresh download.
 
 `printed_total` is the denominator printed on the card ("4/102" -> 102),
 which together with the number is often enough to pin down a set.
@@ -64,7 +68,7 @@ RETRY_DELAY = 2          # seconds
 
 CARD_COLUMNS = [
     "language", "set_id", "set_name", "set_abbreviation", "series_name",
-    "printed_total", "card_number", "card_id", "name", "english_name",
+    "printed_total", "card_number", "id", "name", "english_name",
 ]
 
 SET_COLUMNS = [
@@ -129,7 +133,7 @@ def fetch_set(lang, set_id):
             "series_name": set_row["series_name"],
             "printed_total": printed_total,
             "card_number": card.get("localId", ""),
-            "card_id": card.get("id", ""),
+            "id": card.get("id", ""),
             "name": card.get("name", ""),
             "english_name": "",
         }
@@ -164,7 +168,7 @@ def export_language(lang, label):
 
 
 def main():
-    english_names = {}   # card_id -> English name, for the Western languages
+    english_names = {}   # card id -> English name, for the Western languages
     all_set_rows = []
     sheets = []          # (sheet_name, card_rows), written after Sets is built
 
@@ -180,12 +184,12 @@ def main():
 
         if lang == "en":
             english_names = {
-                r["card_id"]: r["name"] for r in card_rows if r.get("card_id")
+                r["id"]: r["name"] for r in card_rows if r.get("id")
             }
         else:
             matched = 0
             for row in card_rows:
-                english = english_names.get(row["card_id"], "")
+                english = english_names.get(row["id"], "")
                 row["english_name"] = english
                 if english:
                     matched += 1
