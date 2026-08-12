@@ -5,15 +5,26 @@ import type { CatalogCard } from "@/lib/catalog";
 import type { MatchResponse } from "@/lib/match";
 
 /**
- * Operator console for the grading workflow: type what is printed on the card,
- * see the catalog rows it could be. The same /api/match endpoint the grading
- * program calls backs this page, so what an operator sees here is what the
- * program gets.
+ * Operator console for the grading workflow, in two modes.
+ *
+ * Identify takes what is printed on a card and ranks the catalog rows it could
+ * be, through the same /api/match endpoint the grading program calls, so an
+ * operator sees exactly what the program gets. Browse pages through the catalog
+ * for the times a card has to be found by working through a set instead.
  */
+
+type Mode = "identify" | "browse";
 
 interface LanguageOption {
   language: string;
   card_count: number;
+}
+
+interface SearchResponse {
+  cards: CatalogCard[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -34,12 +45,20 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
 const EXAMPLES = ["Charizard 4/102", "BS 4", "base1-4", "SV1a 001", "リザードン"];
 
+const PAGE_SIZE = 25;
+
 export default function Home() {
+  const [mode, setMode] = useState<Mode>("identify");
   const [query, setQuery] = useState("");
   const [language, setLanguage] = useState("");
+  const [setFilter, setSetFilter] = useState("");
+  const [numberFilter, setNumberFilter] = useState("");
+  const [offset, setOffset] = useState(0);
+
   const [languages, setLanguages] = useState<LanguageOption[]>([]);
   const [totalCards, setTotalCards] = useState<number | null>(null);
-  const [result, setResult] = useState<MatchResponse | null>(null);
+  const [match, setMatch] = useState<MatchResponse | null>(null);
+  const [search, setSearch] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,9 +72,14 @@ export default function Home() {
       .catch(() => setError("Could not load catalog languages."));
   }, []);
 
+  // Any change to what is being searched for starts again from the first page.
+  useEffect(() => {
+    setOffset(0);
+  }, [mode, query, language, setFilter, numberFilter]);
+
   const runMatch = useCallback(async () => {
     if (!query.trim()) {
-      setResult(null);
+      setMatch(null);
       return;
     }
     setLoading(true);
@@ -69,10 +93,10 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Match failed.");
-        setResult(null);
+        setMatch(null);
         return;
       }
-      setResult(data as MatchResponse);
+      setMatch(data as MatchResponse);
     } catch {
       setError("Match request failed.");
     } finally {
@@ -80,14 +104,49 @@ export default function Home() {
     }
   }, [query, language]);
 
+  const runSearch = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const params = new URLSearchParams({
+      limit: String(PAGE_SIZE),
+      offset: String(offset),
+    });
+    if (query.trim()) params.set("q", query.trim());
+    if (language) params.set("language", language);
+    if (setFilter.trim()) params.set("set", setFilter.trim());
+    if (numberFilter.trim()) params.set("number", numberFilter.trim());
+
+    try {
+      const res = await fetch(`/api/cards?${params.toString()}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Search failed.");
+        setSearch(null);
+        return;
+      }
+      setSearch(data as SearchResponse);
+    } catch {
+      setError("Search request failed.");
+    } finally {
+      setLoading(false);
+    }
+  }, [query, language, setFilter, numberFilter, offset]);
+
   useEffect(() => {
+    if (mode !== "identify") return;
     const timer = setTimeout(runMatch, 250);
     return () => clearTimeout(timer);
-  }, [runMatch]);
+  }, [mode, runMatch]);
+
+  useEffect(() => {
+    if (mode !== "browse") return;
+    const timer = setTimeout(runSearch, 250);
+    return () => clearTimeout(timer);
+  }, [mode, runSearch]);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <header className="mb-8">
+      <header className="mb-6">
         <h1 className="text-2xl font-black tracking-tight text-pokeblueDark">
           Card lookup
         </h1>
@@ -100,23 +159,24 @@ export default function Home() {
         </p>
       </header>
 
+      <div className="mb-4 inline-flex rounded-lg border border-slate-200 bg-white p-1 text-sm shadow-sm">
+        <ModeButton current={mode} value="identify" onSelect={setMode}>
+          Identify a card
+        </ModeButton>
+        <ModeButton current={mode} value="browse" onSelect={setMode}>
+          Browse the catalog
+        </ModeButton>
+      </div>
+
       <section className="mb-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-[1fr_240px]">
-        <div>
-          <label
-            htmlFor="lookup"
-            className="mb-1 block text-sm font-medium text-slate-600"
-          >
-            Card
-          </label>
-          <input
-            id="lookup"
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Charizard 4/102"
-            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue focus:ring-2 focus:ring-pokeblue/30"
-          />
-        </div>
+        <Field
+          id="lookup"
+          label={mode === "identify" ? "Card" : "Name or set"}
+          value={query}
+          onChange={setQuery}
+          placeholder={mode === "identify" ? "Charizard 4/102" : "Charizard"}
+          autoFocus
+        />
         <div>
           <label
             htmlFor="language"
@@ -140,19 +200,40 @@ export default function Home() {
           </select>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:col-span-2">
-          <span>Try:</span>
-          {EXAMPLES.map((example) => (
-            <button
-              key={example}
-              type="button"
-              onClick={() => setQuery(example)}
-              className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
-            >
-              {example}
-            </button>
-          ))}
-        </div>
+        {mode === "browse" && (
+          <>
+            <Field
+              id="set"
+              label="Set (code, ID or name)"
+              value={setFilter}
+              onChange={setSetFilter}
+              placeholder="BS"
+            />
+            <Field
+              id="number"
+              label="Collector number"
+              value={numberFilter}
+              onChange={setNumberFilter}
+              placeholder="4"
+            />
+          </>
+        )}
+
+        {mode === "identify" && (
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:col-span-2">
+            <span>Try:</span>
+            {EXAMPLES.map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => setQuery(example)}
+                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
+              >
+                {example}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {error && (
@@ -161,28 +242,205 @@ export default function Home() {
         </p>
       )}
 
-      {result && <Interpretation result={result} loading={loading} />}
-
-      {result && result.candidates.length > 0 && (
-        <ol className="space-y-2">
-          {result.candidates.map((candidate, index) => (
-            <CandidateRow
-              key={candidate.card.id}
-              card={candidate.card}
-              score={candidate.score}
-              matchedOn={candidate.matchedOn}
-              best={index === 0 && result.unambiguous}
-            />
-          ))}
-        </ol>
-      )}
-
-      {result && result.candidates.length === 0 && !loading && (
-        <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
-          Nothing in the catalog matches that.
-        </p>
+      {mode === "identify" ? (
+        <IdentifyResults result={match} loading={loading} />
+      ) : (
+        <BrowseResults
+          result={search}
+          loading={loading}
+          onPage={(next) => setOffset(next)}
+        />
       )}
     </main>
+  );
+}
+
+function ModeButton({
+  current,
+  value,
+  onSelect,
+  children,
+}: {
+  current: Mode;
+  value: Mode;
+  onSelect: (mode: Mode) => void;
+  children: React.ReactNode;
+}) {
+  const active = current === value;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(value)}
+      aria-pressed={active}
+      className={`rounded-md px-3 py-1.5 font-medium transition ${
+        active
+          ? "bg-pokeblue text-white"
+          : "text-slate-600 hover:text-pokeblueDark"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Field({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+  autoFocus,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  autoFocus?: boolean;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1 block text-sm font-medium text-slate-600">
+        {label}
+      </label>
+      <input
+        id={id}
+        autoFocus={autoFocus}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue focus:ring-2 focus:ring-pokeblue/30"
+      />
+    </div>
+  );
+}
+
+function IdentifyResults({
+  result,
+  loading,
+}: {
+  result: MatchResponse | null;
+  loading: boolean;
+}) {
+  if (!result) return null;
+
+  return (
+    <>
+      <Interpretation result={result} loading={loading} />
+
+      {result.candidates.length > 0 ? (
+        <ol className="space-y-2">
+          {result.candidates.map((candidate, index) => (
+            <li
+              key={candidate.card.id}
+              className={`rounded-xl border bg-white p-4 shadow-sm ${
+                index === 0 && result.unambiguous
+                  ? "border-emerald-300 ring-1 ring-emerald-200"
+                  : "border-slate-200"
+              }`}
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <CardNames card={candidate.card} />
+                <span className="text-xs font-semibold text-slate-400">
+                  score {candidate.score}
+                </span>
+              </div>
+              <CardLocation card={candidate.card} />
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                <SourceId card={candidate.card} />
+                {candidate.matchedOn.map((reason) => (
+                  <span
+                    key={reason}
+                    className="rounded-full border border-slate-200 px-2 py-0.5 text-slate-500"
+                  >
+                    {reason}
+                  </span>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        !loading && <Empty>Nothing in the catalog matches that.</Empty>
+      )}
+    </>
+  );
+}
+
+function BrowseResults({
+  result,
+  loading,
+  onPage,
+}: {
+  result: SearchResponse | null;
+  loading: boolean;
+  onPage: (offset: number) => void;
+}) {
+  if (!result) return null;
+
+  const { cards, total, limit, offset } = result;
+  const first = total === 0 ? 0 : offset + 1;
+  const last = Math.min(offset + limit, total);
+
+  return (
+    <>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span className="text-slate-500">
+          {total === 0
+            ? "No cards match those filters."
+            : `Showing ${first.toLocaleString()}–${last.toLocaleString()} of ${total.toLocaleString()}`}
+          {loading && <span className="ml-2 text-slate-400">searching…</span>}
+        </span>
+        <div className="flex items-center gap-2">
+          <PageButton disabled={offset === 0} onClick={() => onPage(Math.max(offset - limit, 0))}>
+            Previous
+          </PageButton>
+          <PageButton disabled={last >= total} onClick={() => onPage(offset + limit)}>
+            Next
+          </PageButton>
+        </div>
+      </div>
+
+      {cards.length > 0 ? (
+        <ul className="space-y-2">
+          {cards.map((card) => (
+            <li
+              key={card.id}
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <CardNames card={card} />
+                <SourceId card={card} />
+              </div>
+              <CardLocation card={card} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        !loading && <Empty>No cards match those filters.</Empty>
+      )}
+    </>
+  );
+}
+
+function PageButton({
+  disabled,
+  onClick,
+  children,
+}: {
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-300 disabled:hover:text-slate-600"
+    >
+      {children}
+    </button>
   );
 }
 
@@ -228,62 +486,47 @@ function Interpretation({
   );
 }
 
-function CandidateRow({
-  card,
-  score,
-  matchedOn,
-  best,
-}: {
-  card: CatalogCard;
-  score: number;
-  matchedOn: string[];
-  best: boolean;
-}) {
+function CardNames({ card }: { card: CatalogCard }) {
   return (
-    <li
-      className={`rounded-xl border bg-white p-4 shadow-sm ${
-        best ? "border-emerald-300 ring-1 ring-emerald-200" : "border-slate-200"
-      }`}
-    >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <span className="font-bold text-slate-800">{card.name}</span>
-          {card.english_name && card.english_name !== card.name && (
-            <span className="ml-2 text-sm text-slate-500">
-              {card.english_name}
-            </span>
-          )}
-        </div>
-        <span className="text-xs font-semibold text-slate-400">score {score}</span>
-      </div>
+    <div>
+      <span className="font-bold text-slate-800">{card.name}</span>
+      {card.english_name && card.english_name !== card.name && (
+        <span className="ml-2 text-sm text-slate-500">{card.english_name}</span>
+      )}
+    </div>
+  );
+}
 
-      <div className="mt-1 text-sm text-slate-600">
-        <span className="font-medium">{card.set_name}</span>
-        {card.set_abbreviation && (
-          <span className="text-slate-400"> ({card.set_abbreviation})</span>
-        )}
-        <span className="text-slate-400"> · </span>
-        <span>
-          #{card.card_number}
-          {card.printed_total ? `/${card.printed_total}` : ""}
-        </span>
-        <span className="text-slate-400"> · </span>
-        <span className="uppercase">{card.language}</span>
-      </div>
+function CardLocation({ card }: { card: CatalogCard }) {
+  return (
+    <div className="mt-1 text-sm text-slate-600">
+      <span className="font-medium">{card.set_name}</span>
+      {card.set_abbreviation && (
+        <span className="text-slate-400"> ({card.set_abbreviation})</span>
+      )}
+      <span className="text-slate-400"> · </span>
+      <span>
+        #{card.card_number}
+        {card.printed_total ? `/${card.printed_total}` : ""}
+      </span>
+      <span className="text-slate-400"> · </span>
+      <span className="uppercase">{card.language}</span>
+    </div>
+  );
+}
 
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-        <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">
-          {card.source}:{card.source_card_id}
-        </code>
-        {matchedOn.map((reason) => (
-          <span
-            key={reason}
-            className="rounded-full border border-slate-200 px-2 py-0.5 text-slate-500"
-          >
-            {reason}
-          </span>
-        ))}
-      </div>
-    </li>
+function SourceId({ card }: { card: CatalogCard }) {
+  return (
+    <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
+      {card.source}:{card.source_card_id}
+    </code>
+  );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
+      {children}
+    </p>
   );
 }
