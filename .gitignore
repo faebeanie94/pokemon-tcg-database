@@ -14,6 +14,8 @@ next-env.d.ts
 
 # local sqlite database (generated at runtime from seed data)
 /data/*.db
+/data/*.db-wal
+/data/*.db-shm
 
 # misc
 .DS_Store
