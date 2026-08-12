@@ -10,9 +10,10 @@ unattended, but pulling a large catalog WILL take multiple runs/hours
 on the free plan. Progress is checkpointed so you can stop and resume.
 
 Usage:
-    python3 pokewallet_export.py
+    POKEWALLET_API_KEY=pk_live_... python3 pokewallet_export.py
 
-Before running, paste your API key into API_KEY below.
+The API key is read from the POKEWALLET_API_KEY environment variable. Never
+hard-code it here — this file is committed to a public repository.
 
 Output:
     pokewallet_cards.xlsx
@@ -26,7 +27,7 @@ import pandas as pd
 
 # ---- Config --------------------------------------------------------
 
-API_KEY = "pk_live_43f78861d1653b8c2cbc8e89383d97dda01ebe376dfec641"  # <-- paste your pk_live_... key here
+API_KEY = os.environ.get("POKEWALLET_API_KEY", "")
 BASE_URL = "https://api.pokewallet.io"
 OUTPUT_FILE = "pokewallet_cards.xlsx"
 CHECKPOINT_FILE = "pokewallet_checkpoint.json"  # tracks which sets are already done
@@ -150,7 +151,7 @@ def fetch_all_cards_for_set(set_id, set_code, set_language):
 
 def main():
     if not API_KEY:
-        print("Please paste your PokéWallet API key into API_KEY at the top of this script.")
+        print("Set POKEWALLET_API_KEY in your environment before running this script.")
         return
 
     print("Fetching set list...")

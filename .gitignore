@@ -21,3 +21,10 @@ next-env.d.ts
 .DS_Store
 *.log
 .env*.local
+
+# editor settings
+/.idea/
+
+# python virtualenv for the export scripts in apis/
+/.venv/
+__pycache__/

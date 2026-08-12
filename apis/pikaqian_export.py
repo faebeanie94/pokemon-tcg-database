@@ -11,9 +11,10 @@ cursor position so an interrupted run can resume without starting over
 and re-spending requests already used.
 
 Usage:
-    python3 pikaqian_export.py
+    PIKAQIAN_API_KEY=pk_live_... python3 pikaqian_export.py
 
-Before running, paste your API key into API_KEY below.
+The API key is read from the PIKAQIAN_API_KEY environment variable. Never
+hard-code it here — this file is committed to a public repository.
 
 Output:
     pikaqian_cards.xlsx   (two sheets: "Cards" and "Sets")
@@ -27,7 +28,7 @@ import pandas as pd
 
 # ---- Config --------------------------------------------------------
 
-API_KEY = "pk_live_jo6WTilBw0tTz_4NGlJcayoY687p-oM47oRhpKSFeJc"  # <-- paste your pk_live_... key here
+API_KEY = os.environ.get("PIKAQIAN_API_KEY", "")
 BASE_URL = "https://api.pikaqian.com/v1"
 OUTPUT_FILE = "pikaqian_cards.xlsx"
 CHECKPOINT_FILE = "pikaqian_checkpoint.json"
@@ -173,7 +174,7 @@ def fetch_all_cards(resume_cursor=None):
 
 def main():
     if not API_KEY:
-        print("Please paste your PikaQian API key into API_KEY at the top of this script.")
+        print("Set PIKAQIAN_API_KEY in your environment before running this script.")
         return
 
     sets = fetch_all_sets()
