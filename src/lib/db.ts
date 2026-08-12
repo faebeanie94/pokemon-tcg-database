@@ -1,20 +1,23 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
-import { initSchema, seedIfEmpty } from "./cards";
+import { initSchema } from "./catalog";
 
 let dbInstance: Database.Database | null = null;
 
-function resolveDbPath(): string {
-  const configured = process.env.DATABASE_PATH;
-  if (configured) return configured;
-  return path.join(process.cwd(), "data", "pokemon.db");
+export function resolveDbPath(): string {
+  return (
+    process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "catalog.db")
+  );
 }
 
 /**
- * Returns a lazily-initialized singleton SQLite connection. The schema is
- * created and seed data inserted on first access so the app is usable
- * immediately after a fresh checkout with no manual migration step.
+ * Lazily-initialized singleton SQLite connection.
+ *
+ * The schema is created on first access, but no data is seeded: the catalog is
+ * loaded from the exported workbooks by `pnpm import:catalog`. A fresh checkout
+ * therefore answers queries against an empty catalog rather than fabricated
+ * cards, which is the safer default for a grading lookup.
  */
 export function getDb(): Database.Database {
   if (dbInstance) return dbInstance;
@@ -25,7 +28,6 @@ export function getDb(): Database.Database {
   const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
   initSchema(db);
-  seedIfEmpty(db);
 
   dbInstance = db;
   return db;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { getCard } from "@/lib/cards";
+import { getCard } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 

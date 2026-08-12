@@ -1,42 +1,40 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { createCard, listCards, ValidationError } from "@/lib/cards";
+import { searchCards } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Catalog search. Read-only: the catalog is loaded from the exported
+ * workbooks by `pnpm import:catalog`, never written to over HTTP.
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const search = searchParams.get("search") ?? undefined;
-  const type = searchParams.get("type") ?? undefined;
 
-  const cards = listCards(getDb(), { search, type });
-  return NextResponse.json({ cards });
+  const limit = parseIntOr(searchParams.get("limit"), 50);
+  const offset = parseIntOr(searchParams.get("offset"), 0);
+  if (limit === null || offset === null) {
+    return NextResponse.json(
+      { error: "limit and offset must be integers" },
+      { status: 400 }
+    );
+  }
+
+  const result = searchCards(getDb(), {
+    q: searchParams.get("q") ?? searchParams.get("search") ?? undefined,
+    language: searchParams.get("language") ?? undefined,
+    set: searchParams.get("set") ?? undefined,
+    number: searchParams.get("number") ?? undefined,
+    source: searchParams.get("source") ?? undefined,
+    limit,
+    offset,
+  });
+
+  return NextResponse.json(result);
 }
 
-export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
-  }
-
-  try {
-    const input = body as Record<string, unknown>;
-    const card = createCard(getDb(), {
-      name: String(input.name ?? ""),
-      set: String(input.set ?? ""),
-      type: String(input.type ?? ""),
-      rarity: String(input.rarity ?? ""),
-      hp: input.hp === undefined || input.hp === null || input.hp === ""
-        ? null
-        : Number(input.hp),
-    });
-    return NextResponse.json({ card }, { status: 201 });
-  } catch (err) {
-    if (err instanceof ValidationError) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
-    throw err;
-  }
+function parseIntOr(value: string | null, fallback: number): number | null {
+  if (value === null || value === "") return fallback;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) ? parsed : null;
 }
