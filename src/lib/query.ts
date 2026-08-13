@@ -35,10 +35,12 @@ const NUMBER_OVER_TOTAL = /^([\p{L}\p{N}]+)\/(\d+)$/u;
 const CARD_ID = /^([\p{L}\p{N}.]*\d[\p{L}\p{N}.]*)-(\d+[a-z]?)$/iu;
 
 /**
- * A canonical card UID, '<language>:<set code>#<number>' such as "en:bs#4".
- * This is what a grading record stores, so pasting one back in has to work.
+ * A canonical card UID. New form: '<game>:<language>:<set>#<number>[#parallel]'
+ * e.g. "pokemon:en:bs#4". Legacy form without game ("en:bs#4") is still
+ * accepted so older grading records keep working during migration.
  */
-const CANONICAL_UID = /^[a-z]{2}(-[a-z]{2})?:[^\s#]+#\S+$/i;
+const CANONICAL_UID =
+  /^(?:[a-z][a-z0-9]*:)?[a-z]{2}(?:-[a-z]{2})?:[^\s#]+#\S+$/i;
 
 /** Digits only, so unambiguously a collector number. */
 const PURE_NUMBER = /^\d{1,5}$/;

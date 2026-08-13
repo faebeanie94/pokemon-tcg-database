@@ -54,6 +54,22 @@ export function normalizeNumber(input: string | null | undefined): string {
 }
 
 /**
+ * Sports / entertainment card numbers often keep hyphens as significant
+ * separators ("SSL-SM"). Collapse case and punctuation except hyphens, then
+ * strip leading zeros from digit runs.
+ */
+export function normalizeSportsNumber(input: string | null | undefined): string {
+  if (!input) return "";
+  return input
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}-]/gu, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .replace(/\d+/g, (digits) => String(Number(digits)));
+}
+
+/**
  * Normalizes a set abbreviation ("BS", "sv1a") for comparison.
  */
 export function normalizeSetToken(input: string | null | undefined): string {

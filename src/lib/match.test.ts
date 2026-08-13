@@ -14,7 +14,7 @@ describe("matchCards", () => {
     const result = matchCards(db, { query: "Charizard 4/102", language: "en" });
 
     expect(result.unambiguous).toBe(true);
-    expect(result.candidates[0].card.card_uid).toBe("en:bs#4");
+    expect(result.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
     expect(result.candidates[0].matchedOn).toContain("collector number");
     expect(result.candidates[0].matchedOn).toContain("printed total");
     expect(result.candidates[0].matchedOn).toContain("name");
@@ -35,7 +35,7 @@ describe("matchCards", () => {
     const result = matchCards(db, { query: "BS 4", language: "en" });
 
     expect(result.unambiguous).toBe(true);
-    expect(result.candidates[0].card.card_uid).toBe("en:bs#4");
+    expect(result.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
     expect(result.interpretation.number).toBe("4");
     expect(result.interpretation.sets[0].token).toBe("BS");
   });
@@ -48,14 +48,14 @@ describe("matchCards", () => {
     expect(result.unambiguous).toBe(true);
     expect(result.candidates[0].card.name).toBe("トロピウス");
     expect(result.interpretation.number).toBe("1");
-    expect(result.interpretation.sets[0].setUids).toEqual(["ja:sv1a"]);
+    expect(result.interpretation.sets[0].setUids).toEqual(["pokemon:ja:sv1a"]);
   });
 
   it("claims a multi-word set name before its individual words", () => {
     const result = matchCards(db, { query: "Team Rocket 4", language: "en" });
 
     expect(result.interpretation.sets[0].token).toBe("Team Rocket");
-    expect(result.candidates[0].card.card_uid).toBe("en:tr#4");
+    expect(result.candidates[0].card.card_uid).toBe("pokemon:en:tr#4");
     expect(result.unambiguous).toBe(true);
   });
 
@@ -64,7 +64,7 @@ describe("matchCards", () => {
     // from the curated workbook.
     const result = matchCards(db, { query: "Triplet Beat 001" });
 
-    expect(result.candidates[0].card.card_uid).toBe("ja:sv1a#001");
+    expect(result.candidates[0].card.card_uid).toBe("pokemon:ja:sv1a#001");
     expect(result.unambiguous).toBe(true);
   });
 
@@ -108,9 +108,9 @@ describe("matchCards", () => {
   });
 
   it("finds a card from its canonical UID", () => {
-    const result = matchCards(db, { query: "en:bs#4" });
+    const result = matchCards(db, { query: "pokemon:en:bs#4" });
 
-    expect(result.candidates[0].card.card_uid).toBe("en:bs#4");
+    expect(result.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
     expect(result.candidates[0].matchedOn).toContain("card ID");
     expect(result.unambiguous).toBe(true);
   });
@@ -140,7 +140,7 @@ describe("matchCards", () => {
       language: "en",
     });
 
-    expect(result.candidates[0].card.card_uid).toBe("en:bs#4");
+    expect(result.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
     expect(result.unambiguous).toBe(true);
   });
 
@@ -154,10 +154,10 @@ describe("resolveSetTokens", () => {
   it("resolves abbreviations, set IDs, set names and aliases", () => {
     const db = buildTestCatalog();
 
-    expect(resolveSetTokens(db, ["BS"])[0].setUids.sort()).toEqual(["de:bs", "en:bs", "en:bs-1999", "fr:bs"]);
-    expect(resolveSetTokens(db, ["base5"])[0].setUids).toEqual(["en:tr"]);
-    expect(resolveSetTokens(db, ["team rocket"])[0].setUids).toEqual(["en:tr"]);
-    expect(resolveSetTokens(db, ["Triplet Beat"])[0].setUids).toEqual(["ja:sv1a"]);
+    expect(resolveSetTokens(db, ["BS"])[0].setUids.sort()).toEqual(["pokemon:de:bs", "pokemon:en:bs", "pokemon:en:bs-1999", "pokemon:fr:bs"]);
+    expect(resolveSetTokens(db, ["base5"])[0].setUids).toEqual(["pokemon:en:tr"]);
+    expect(resolveSetTokens(db, ["team rocket"])[0].setUids).toEqual(["pokemon:en:tr"]);
+    expect(resolveSetTokens(db, ["Triplet Beat"])[0].setUids).toEqual(["pokemon:ja:sv1a"]);
     expect(resolveSetTokens(db, ["Charizard"])).toEqual([]);
   });
 });

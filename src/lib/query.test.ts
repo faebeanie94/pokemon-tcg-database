@@ -28,6 +28,7 @@ describe("parseCardQuery", () => {
 
   it("recognises a canonical card UID, which is what a grading record stores", () => {
     expect(parseCardQuery("en:bs#4").cardId).toBe("en:bs#4");
+    expect(parseCardQuery("pokemon:en:bs#4").cardId).toBe("pokemon:en:bs#4");
     expect(parseCardQuery("zh-cn:csve2c#001").cardId).toBe("zh-cn:csve2c#001");
   });
 

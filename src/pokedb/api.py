@@ -36,15 +36,18 @@ from .normalize import normalize_code, split_number
 MAX_PAGE_SIZE = 500
 
 CARD_COLUMNS = """
-    c.card_uid, c.set_uid, c.language, s.name AS set_name, s.name_en AS set_name_en,
+    c.card_uid, c.set_uid, c.game, c.language, s.name AS set_name, s.name_en AS set_name_en,
     s.abbreviation AS set_code, s.release_date, s.release_year AS year,
+    s.manufacturer, s.sport, s.product_year,
     c.number AS card_number, c.name AS card_name, c.name_en AS card_name_en,
+    c.subject_name, c.parallel, c.notations, c.serial_number, c.print_run, c.display_name,
     c.rarity, s.card_count_official AS cards_in_set, c.image_url, c.sources
 """
 
 SET_COLUMNS = """
-    s.set_uid, s.language, s.name, s.name_en, s.abbreviation AS code,
+    s.set_uid, s.game, s.language, s.name, s.name_en, s.abbreviation AS code,
     s.release_date, s.release_year AS year, s.series_name AS series,
+    s.manufacturer, s.sport, s.product_year,
     s.card_count_official AS cards_in_set, s.card_count_loaded AS cards_listed, s.sources
 """
 

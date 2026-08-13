@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .config import BUILD, DB_PATH, LANGUAGES
+from .config import BUILD, DB_PATH, GAMES, LANGUAGES
 from .match import SetRegistry, merge_cards
 from .normalize import release_year
 from .records import SourceData
@@ -30,11 +30,10 @@ def _insert(connection: sqlite3.Connection, table: str, rows: list[dict[str, Any
 def _set_row(canonical, source_order: list[str]) -> dict[str, Any]:
     pick = lambda attribute: canonical.first(source_order, attribute)  # noqa: E731
     release_date = pick("release_date")
-    tcgdex_record = canonical.records.get("tcgdex")
-    pikaqian_record = canonical.records.get("pikaqian_cards.xlsx")
     contributing = [record.source for record in canonical.ordered(source_order)]
     return {
         "set_uid": canonical.set_uid,
+        "game": canonical.game,
         "language": canonical.language,
         "name": pick("name") or pick("name_en"),
         "name_en": pick("name_en"),
@@ -46,8 +45,9 @@ def _set_row(canonical, source_order: list[str]) -> dict[str, Any]:
         "card_count_official": pick("card_count_official"),
         "card_count_total": pick("card_count_total"),
         "card_count_loaded": 0,
-        "tcgdex_set_id": tcgdex_record.source_set_id if tcgdex_record else None,
-        "pikaqian_set_id": pikaqian_record.source_set_id if pikaqian_record else None,
+        "manufacturer": pick("manufacturer"),
+        "sport": pick("sport"),
+        "product_year": pick("product_year"),
         "logo_url": pick("logo_url"),
         "symbol_url": pick("symbol_url"),
         "sources": ",".join(contributing),
@@ -55,8 +55,22 @@ def _set_row(canonical, source_order: list[str]) -> dict[str, Any]:
     }
 
 
+def _source_id_rows(canonical, source_order: list[str]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for record in canonical.ordered(source_order):
+        if record.source_set_id:
+            rows.append(
+                {
+                    "set_uid": canonical.set_uid,
+                    "source": record.source,
+                    "source_id": record.source_set_id,
+                }
+            )
+    return rows
+
+
 def _derive_english_names(card_rows: list[dict[str, Any]]) -> int:
-    """Fill in English card names for languages that only ship a local name."""
+    """Fill in English card names for Pokémon languages that only ship a local name."""
     from .translate import load_translator
 
     translator = load_translator()
@@ -65,6 +79,8 @@ def _derive_english_names(card_rows: list[dict[str, Any]]) -> int:
 
     derived = 0
     for row in card_rows:
+        if row.get("game") != "pokemon":
+            continue
         if row.get("name_en") or not translator.supports(row["language"]):
             continue
         english = translator.english_name(row["language"], row["name"])
@@ -100,6 +116,7 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
     connection.executescript(SCHEMA.read_text(encoding="utf-8"))
     connection.execute("PRAGMA foreign_keys = ON")
 
+    _insert(connection, "games", [dict(game) for game in GAMES])
     _insert(connection, "languages", [dict(language) for language in LANGUAGES])
     _insert(
         connection,
@@ -126,6 +143,12 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
             for record in canonical.records.values()
         ],
     )
+    source_ids = [
+        row
+        for canonical in registry.canonical
+        for row in _source_id_rows(canonical, source_order)
+    ]
+    _insert(connection, "set_source_ids", source_ids)
     _insert(connection, "cards", card_rows)
 
     connection.execute(
@@ -142,6 +165,7 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
         "sources": len(sources),
         "sets": connection.execute("SELECT COUNT(*) FROM sets").fetchone()[0],
         "cards": connection.execute("SELECT COUNT(*) FROM cards").fetchone()[0],
+        "games": connection.execute("SELECT COUNT(DISTINCT game) FROM sets").fetchone()[0],
         "languages": connection.execute(
             "SELECT COUNT(DISTINCT language) FROM sets"
         ).fetchone()[0],
