@@ -22,6 +22,7 @@ export async function GET(request: Request) {
 
   const result = searchCards(getDb(), {
     q: searchParams.get("q") ?? searchParams.get("search") ?? undefined,
+    game: searchParams.get("game") ?? undefined,
     language: searchParams.get("language") ?? undefined,
     set: searchParams.get("set") ?? undefined,
     number: searchParams.get("number") ?? undefined,

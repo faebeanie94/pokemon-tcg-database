@@ -61,15 +61,18 @@ export function normalizeSetToken(input: string | null | undefined): string {
 }
 
 /**
- * Sports card numbers like "SSL-SM" must keep their letter groups intact.
- * Hyphens are dropped for comparison, but letters are not stripped the way a
- * pure digit normalizer might imply — same NFKC + letter/digit keep as
- * normalizeNumber, which already preserves "SSLSM" from "SSL-SM".
- *
- * Exposed separately so sports matching can document the intent.
+ * Sports card numbers like "SSL-SM" keep hyphens as significant separators.
+ * Collapse case and other punctuation, then strip leading zeros from digit runs.
  */
 export function normalizeSportsNumber(input: string | null | undefined): string {
-  return normalizeNumber(input);
+  if (!input) return "";
+  return input
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}-]/gu, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .replace(/\d+/g, (digits) => String(Number(digits)));
 }
 
 /**

@@ -1,5 +1,10 @@
 import type { Database } from "better-sqlite3";
-import { normalizeName, normalizeNumber, normalizeSetToken } from "./normalize";
+import {
+  normalizeName,
+  normalizeNumber,
+  normalizeSetToken,
+  normalizeSportsNumber,
+} from "./normalize";
 import { isTrigramSearchable } from "./query";
 
 /**
@@ -96,6 +101,9 @@ export function registerSqlFunctions(db: Database): void {
   db.function("norm_number", { deterministic: true }, (value: unknown) =>
     normalizeNumber(value == null ? "" : String(value))
   );
+  db.function("norm_sports_number", { deterministic: true }, (value: unknown) =>
+    normalizeSportsNumber(value == null ? "" : String(value))
+  );
 }
 
 export class CatalogNotBuiltError extends Error {}
@@ -182,8 +190,9 @@ export function buildMatchIndex(db: Database): IndexStats {
       name_en_norm   TEXT,
       subject_norm   TEXT,
       parallel_norm  TEXT,
-      display_norm   TEXT,
-      number_norm    TEXT NOT NULL
+      display_norm        TEXT,
+      number_norm         TEXT NOT NULL,
+      sports_number_norm  TEXT NOT NULL
     );
 
     -- Every way a set can be referred to: printed code, canonical UID, the
@@ -211,7 +220,7 @@ export function buildMatchIndex(db: Database): IndexStats {
   db.exec(`
     INSERT INTO match_cards (
       card_uid, game, name_norm, name_en_norm, subject_norm, parallel_norm,
-      display_norm, number_norm
+      display_norm, number_norm, sports_number_norm
     )
     SELECT c.card_uid,
            c.game,
@@ -223,7 +232,8 @@ export function buildMatchIndex(db: Database): IndexStats {
            norm_name(c.subject_name),
            norm_name(c.parallel),
            norm_name(COALESCE(c.display_name, c.name)),
-           norm_number(c.number)
+           norm_number(c.number),
+           norm_sports_number(c.number)
       FROM cards c;
 
     INSERT OR IGNORE INTO match_sets (set_uid, game, token_norm, kind)
@@ -260,6 +270,7 @@ export function buildMatchIndex(db: Database): IndexStats {
     CREATE INDEX idx_match_cards_subject  ON match_cards (subject_norm);
     CREATE INDEX idx_match_cards_parallel ON match_cards (parallel_norm);
     CREATE INDEX idx_match_cards_number   ON match_cards (number_norm);
+    CREATE INDEX idx_match_cards_snumber  ON match_cards (sports_number_norm);
     CREATE INDEX idx_match_cards_game     ON match_cards (game);
     CREATE INDEX idx_match_sets_token     ON match_sets (token_norm);
     CREATE INDEX idx_match_sets_game      ON match_sets (game);
@@ -359,8 +370,9 @@ export function searchCards(db: Database, filters: SearchFilters = {}): SearchRe
   }
   if (filters.number?.trim()) {
     joins.push("JOIN match_cards mc ON mc.card_uid = c.card_uid");
-    clauses.push("mc.number_norm = @number");
+    clauses.push("(mc.number_norm = @number OR mc.sports_number_norm = @snumber)");
     params.number = normalizeNumber(filters.number);
+    params.snumber = normalizeSportsNumber(filters.number);
   }
 
   const from = `${FROM_CARDS} ${joins.join(" ")}`;

@@ -150,6 +150,58 @@ describe("matchCards", () => {
   });
 });
 
+describe("sports matching", () => {
+  let db: Database;
+
+  beforeEach(() => {
+    db = buildTestCatalog();
+  });
+
+  it("identifies Beckham Halo Ref from the three grading fields", () => {
+    const result = matchCards(db, {
+      game: "sports",
+      set: "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
+      name: "SIR DAVID BECKHAM - HALO REF.",
+      number: "38",
+    });
+
+    expect(result.candidates[0].card.card_uid).toBe(
+      "sports:en:202526toppsmanchesterunitedteamset#38#haloref"
+    );
+    expect(result.candidates[0].matchedOn).toContain("parallel");
+    expect(result.unambiguous).toBe(true);
+  });
+
+  it("does not auto-accept set plus number when a parallel sibling exists", () => {
+    const result = matchCards(db, {
+      game: "sports",
+      set: "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
+      name: "SIR DAVID BECKHAM",
+      number: "38",
+    });
+
+    expect(result.candidates[0].card.parallel).toBeNull();
+    expect(result.unambiguous).toBe(false);
+  });
+
+  it("keeps SSL-SM as the number and 09/15 as a serial", () => {
+    const result = matchCards(db, {
+      game: "sports",
+      set: "2024 PANINI FLAWLESS WWE",
+      name: "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15",
+      number: "SSL-SM",
+    });
+
+    expect(result.interpretation.number).toBe("ssl-sm");
+    expect(result.interpretation.serial_number).toBe("09");
+    expect(result.interpretation.print_run).toBe(15);
+    expect(result.candidates[0].card.card_uid).toBe(
+      "sports:en:2024paniniflawlesswwe#SSL-SM#rubyref"
+    );
+    expect(result.unambiguous).toBe(true);
+  });
+});
+
 describe("resolveSetTokens", () => {
   it("resolves abbreviations, set IDs, set names and aliases", () => {
     const db = buildTestCatalog();

@@ -97,9 +97,21 @@ describe("catalog metadata", () => {
 
   it("lists sets and filters them by language", () => {
     const db = buildTestCatalog();
-    expect(listSets(db, {}).length).toBe(8);
+    expect(listSets(db, {}).length).toBe(10);
     expect(
       listSets(db, { language: "en" })
+        .map((s) => s.set_uid)
+        .sort()
+    ).toEqual([
+      "pokemon:en:b2",
+      "pokemon:en:bs",
+      "pokemon:en:bs-1999",
+      "pokemon:en:tr",
+      "sports:en:2024paniniflawlesswwe",
+      "sports:en:202526toppsmanchesterunitedteamset",
+    ]);
+    expect(
+      listSets(db, { game: "pokemon", language: "en" })
         .map((s) => s.set_uid)
         .sort()
     ).toEqual(["pokemon:en:b2", "pokemon:en:bs", "pokemon:en:bs-1999", "pokemon:en:tr"]);
