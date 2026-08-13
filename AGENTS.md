@@ -71,9 +71,13 @@ TCGCSV walks are opt-in. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
   (subject + parallel + notations + optional `09/15` serial), number. The
   `09/15` serial is a print run, **not** a Pokémon-style printed total — see
   `src/lib/sports.ts`.
-- **Sports data strategy** defaults to curated JSON/xlsx (no public Topps /
-  Panini / Upper Deck checklist API). Seed examples live in
-  `data/raw/sports/seed.json`.
+- **Sports data strategy** defaults to curated xlsx/JSON (no public Topps /
+  Panini / Upper Deck checklist API). Spine:
+  `sources/sports_database.xlsx` + `sources/sports_cards.xlsx` (regenerate with
+  `python3 scripts/seed_sports_xlsx.py`). Broader examples live in
+  `data/raw/sports/seed.json`. Optional TCDB/Beckett dumps go under
+  `data/raw/tcdb/` / `data/raw/beckett/` via `apis/tcdb_fetch.py` /
+  `apis/beckett_fetch.py`.
 - **The match index is derived and self-healing.** `match_cards`, `match_sets`
   and `cards_fts` live in the same file as the canonical tables but are built by
   the TypeScript side (`buildMatchIndex` in `src/lib/catalog.ts`). A `pokedb

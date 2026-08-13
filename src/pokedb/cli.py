@@ -14,6 +14,8 @@ FETCH_SOURCES = (
     "lorcast",
     "goagain",
     "apitcg",
+    "tcdb",
+    "beckett",
 )
 
 
@@ -140,3 +142,13 @@ def _run_fetch(
 
             print("Fetching apitcg data...")
             print(f"  {fetch_all(games)}")
+        elif source == "tcdb":
+            from .fetch_sports import print_tcdb_help
+
+            print("Staging TCDB sports checklists...")
+            print_tcdb_help()
+        elif source == "beckett":
+            from .fetch_sports import print_beckett_help
+
+            print("Staging Beckett sports checklists...")
+            print_beckett_help()

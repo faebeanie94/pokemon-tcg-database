@@ -1,71 +1,88 @@
 # Sports checklist curation
 
 Sports / entertainment cards (soccer, football, wrestling, UFC, Topps, Panini,
-Upper Deck, Skybox) have **no public checklist API**. This project uses curated
-data as the default ingestion path.
+Upper Deck, Skybox) have **no public checklist API**. This project uses a curated
+spreadsheet spine plus optional automated dumps.
 
 ## Files
 
 | Path | Purpose |
 | --- | --- |
+| [`sources/sports_database.xlsx`](../sources/sports_database.xlsx) | **Spine** — sets (season, manufacturer, sport, set name) |
+| [`sources/sports_cards.xlsx`](../sources/sports_cards.xlsx) | Checklist rows for those sets |
 | [`data/raw/sports/seed.json`](../data/raw/sports/seed.json) | Built-in seed (grading examples + manufacturer coverage) |
-| `sports_checklists.xlsx` (repo root or `data/`) | Optional operator workbook |
-| [`src/pokedb/sources/sports_json.py`](../src/pokedb/sources/sports_json.py) | Loads seed.json |
-| [`src/pokedb/sources/sports_xlsx.py`](../src/pokedb/sources/sports_xlsx.py) | Loads the xlsx when present |
+| `sports_checklists.xlsx` (repo root or `sources/`) | Optional combined operator workbook |
+| `data/raw/tcdb/*.json` | Normalized TCDB dumps (via `apis/tcdb_fetch.py`) |
+| `data/raw/beckett/*.json` | Normalized Beckett article dumps (via `apis/beckett_fetch.py`) |
 
-## Seed coverage
+Load precedence within sports (earlier wins on conflicts):
 
-The tracked seed is a starter checklist for operators, not a complete catalog:
+1. `sports_database.xlsx` + `sports_cards.xlsx`
+2. `seed.json`
+3. `sports_checklists.xlsx`
+4. TCDB dumps
+5. Beckett dumps
+
+## Regenerating the spine seed
+
+```bash
+python3 scripts/seed_sports_xlsx.py
+```
+
+Writes the two grading examples (Beckham Halo Ref #38, Michaels SSL-SM Ruby Auto)
+into `sources/sports_database.xlsx` and `sources/sports_cards.xlsx`.
+
+## Seed / spine coverage
 
 | Set | Manufacturer | Sport | Notes |
 | --- | --- | --- | --- |
 | 2025-26 Topps Manchester United Team Set | Topps | soccer | Beckham #38 base + Halo Ref |
 | 2024 Panini Flawless WWE | Panini | wrestling | Michaels SSL-SM + Undertaker auto |
-| 2025 Topps Chrome Football | Topps | football | Mahomes + Stroud RC parallels |
-| 2026 Upper Deck AEW Wrestling | Upper Deck | wrestling | CM Punk + MJF auto |
-| 2024 Panini Prizm Soccer | Panini | soccer | Messi / Mbappé parallels |
-| 1996-97 Skybox Premium Basketball | Skybox | basketball | Jordan + Kobe RC (manufacturer tag) |
-| 2024 Topps Chrome UFC | Topps | ufc | McGregor + Makhachev auto |
+| 2025 Topps Chrome Football | Topps | football | Mahomes + Stroud RC (seed.json) |
+| 2026 Upper Deck AEW Wrestling | Upper Deck | wrestling | CM Punk + MJF auto (seed.json) |
+| 2024 Panini Prizm Soccer | Panini | soccer | Messi / Mbappé (seed.json) |
+| 1996-97 Skybox Premium Basketball | Skybox | basketball | Jordan + Kobe RC (seed.json) |
+| 2024 Topps Chrome UFC | Topps | ufc | McGregor + Makhachev (seed.json) |
 
-Grow this file (or the xlsx) as operators need more releases. After editing:
+After editing:
 
 ```bash
 PYTHONPATH=src python3 -m pokedb build && pnpm build:index
 ```
 
-## seed.json shape
+## sports_database.xlsx columns
 
-```json
-{
-  "sets": [
-    {
-      "id": "2024-panini-flawless-wwe",
-      "name": "2024 PANINI FLAWLESS WWE",
-      "manufacturer": "Panini",
-      "sport": "wrestling",
-      "product_year": "2024",
-      "release_date": "2024-11-15"
-    }
-  ],
-  "cards": [
-    {
-      "set_id": "2024-panini-flawless-wwe",
-      "number": "SSL-SM",
-      "subject_name": "SHAWN MICHAELS",
-      "notations": "AUTO",
-      "parallel": "RUBY REF",
-      "serial_number": "09",
-      "print_run": 15,
-      "display_name": "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15"
-    }
-  ]
-}
+`season` / `product_year`, `manufacturer`, `sport`, `set_name`, `release_date`,
+optional `source_set_id`, `language`.
+
+## sports_cards.xlsx columns
+
+`set_id` or `set_name`, `number`, `subject`, `parallel`, `variant_tags` /
+`notations`, optional `serial_number`, `serial_total` / `print_run`,
+`display_name`.
+
+## TCDB / Beckett adapters
+
+```bash
+python3 apis/tcdb_fetch.py --from-file path/to/dump.json
+python3 apis/beckett_fetch.py --from-file path/to/article.json
+PYTHONPATH=src python3 -m pokedb fetch --source tcdb   # prints staging help
+PYTHONPATH=src python3 -m pokedb fetch --source beckett
 ```
 
-## xlsx columns
+Live HTML scraping is **not** implemented (fragile markup / ToS). Drop normalized
+JSON into `data/raw/tcdb/` or `data/raw/beckett/` and rebuild. Curated xlsx wins
+on set names; automated sources fill card completeness.
 
-`manufacturer`, `sport`, `season` / `product_year`, `set_name`, `subject_name`,
-`parallel`, `notations`, `number`, `serial_number`, `print_run`, `display_name`.
+## Manufacturer coverage
+
+| Manufacturer / category | Ingestion path |
+| --- | --- |
+| Topps (soccer, football, wrestling) | curated xlsx / seed + TCDB + Beckett |
+| Panini (soccer, football, wrestling, UFC) | curated xlsx / seed + TCDB + Beckett |
+| Upper Deck (wrestling, UFC, Marvel) | curated + Beckett |
+| Skybox | curated (vintage; no API) |
+| Marvel (non-TCG trading cards) | curated / Beckett non-sports |
 
 ## Grading fields
 
@@ -79,7 +96,8 @@ Operators send three fields to `/api/match` with `game: "sports"`:
 
 ## Adding a new release
 
-1. Append the set and cards to `seed.json` or the xlsx.
+1. Append the set to `sports_database.xlsx` and cards to `sports_cards.xlsx`
+   (or extend `seed.json` / drop a TCDB/Beckett JSON).
 2. Run `PYTHONPATH=src python3 -m pokedb build && pnpm build:index`.
 3. Verify with the operator console (Game → Sports) or:
 

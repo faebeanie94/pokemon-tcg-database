@@ -10,13 +10,16 @@ from __future__ import annotations
 from ..records import SourceData
 from . import (
     apitcg,
+    beckett,
     database_xlsx,
     goagain,
     lorcast,
     pikaqian_xlsx,
     scryfall,
+    sports_database_xlsx,
     sports_json,
     sports_xlsx,
+    tcdb,
     tcgcsv,
     tcgdex,
     ygoprodeck,
@@ -24,13 +27,17 @@ from . import (
 
 # Order matters within a game. database.xlsx is the Pokémon spine; pikaqian is
 # the authoritative Simplified Chinese card source; TCGdex supplies every
-# language's card lists. Sports and other-game loaders follow.
+# language's card lists. For sports, sports_database.xlsx is the curated spine;
+# seed JSON / combined checklists / TCDB / Beckett fill gaps afterward.
 LOADERS = (
     database_xlsx.load,
     pikaqian_xlsx.load,
     tcgdex.load,
+    sports_database_xlsx.load,
     sports_json.load,
     sports_xlsx.load,
+    tcdb.load,
+    beckett.load,
     tcgcsv.load,
     scryfall.load,
     ygoprodeck.load,

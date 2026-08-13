@@ -53,21 +53,14 @@ Spreadsheet exporters (optional, for offline / verify workflows):
 Soccer, football, wrestling, UFC, Topps, Panini, Upper Deck, and Skybox checklists
 are not published as structured APIs. Ingestion options:
 
-1. **Curated spreadsheets** (default) — `data/raw/sports/seed.json` /
-   `sports_checklists.xlsx`, same pattern as `database.xlsx`.
-2. TCDB / Beckett scraping (fragile, terms-of-service risk).
+1. **Curated spine** (default) — `sources/sports_database.xlsx` +
+   `sources/sports_cards.xlsx`, plus `data/raw/sports/seed.json` /
+   `sports_checklists.xlsx`.
+2. **Normalized dumps** — `apis/tcdb_fetch.py` / `apis/beckett_fetch.py` write
+   JSON under `data/raw/tcdb/` and `data/raw/beckett/` (no live scrape).
 3. Commercial catalog vendors (e.g. CardSight).
 
-Sports grading format (operator fields):
-
-| Field | Example |
-| --- | --- |
-| Set name | `2025-26 TOPPS MANCHESTER UNITED TEAM SET` |
-| Card name + parallel | `SIR DAVID BECKHAM - HALO REF.` |
-| Number | `38` |
-
-Parallels, inserts (`AUTO`), and serials (`09/15`) are first-class card columns.
-`09/15` is a print run, not a Pokémon-style printed total.
+See [SPORTS.md](SPORTS.md) for column layouts and merge precedence.
 
 ## Manual / community-only (Phase 5 backlog)
 

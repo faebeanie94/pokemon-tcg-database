@@ -14,6 +14,8 @@ YGOPRODECK_RAW = DATA_RAW / "ygoprodeck"
 GOAGAIN_RAW = DATA_RAW / "goagain"
 APITCG_RAW = DATA_RAW / "apitcg"
 SPORTS_RAW = DATA_RAW / "sports"
+TCDB_RAW = DATA_RAW / "tcdb"
+BECKETT_RAW = DATA_RAW / "beckett"
 SOURCES = ROOT / "sources"
 BUILD = ROOT / "build"
 EXPORTS = ROOT / "exports"
@@ -60,6 +62,9 @@ TCGCSV_CATEGORIES: dict[str, int] = {
     "dicemasters": 18,
     "dbsfw": 80,
 }
+
+# Inverse map (categoryId -> game code) for apis/tcgcsv_fetch.py callers.
+TCGCSV_GAMES: dict[int, str] = {category: game for game, category in TCGCSV_CATEGORIES.items()}
 
 # Languages the catalog accepts. Pokémon-focused entries keep their region
 # labels; Scryfall extras and a sports-default English are also listed.
