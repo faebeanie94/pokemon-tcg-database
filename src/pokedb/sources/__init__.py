@@ -3,6 +3,10 @@
 Sources are listed in merge precedence order: earlier sources win when two
 sources disagree about a field. Pokémon sources come first so the existing
 spine (database.xlsx) still wins within that game; other games are appended.
+
+Language-rich dumps (Scryfall, YGOPRODeck, Lorcast, GoAgain, apitcg) are
+registered before TCGCSV so multilingual / richer data wins when both are
+present for the same game.
 """
 
 from __future__ import annotations
@@ -25,10 +29,8 @@ from . import (
     ygoprodeck,
 )
 
-# Order matters within a game. database.xlsx is the Pokémon spine; pikaqian is
-# the authoritative Simplified Chinese card source; TCGdex supplies every
-# language's card lists. For sports, sports_database.xlsx is the curated spine;
-# seed JSON / combined checklists / TCDB / Beckett fill gaps afterward.
+# Flat discovery order (what ``load_all`` runs). Earlier sources win on
+# field-level conflicts when a single global merge order is used.
 LOADERS = (
     database_xlsx.load,
     pikaqian_xlsx.load,
@@ -38,12 +40,13 @@ LOADERS = (
     sports_xlsx.load,
     tcdb.load,
     beckett.load,
-    tcgcsv.load,
+    # Language-rich sources before TCGCSV (Phase 4).
     scryfall.load,
     ygoprodeck.load,
     lorcast.load,
     goagain.load,
     apitcg.load,
+    tcgcsv.load,
 )
 
 

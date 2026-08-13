@@ -40,7 +40,9 @@ pnpm fetch:mtg / pnpm fetch:onepiece             # large or game-specific dumps
 
 `PYTHONPATH=src` is required for every `pokedb` command; there is no installed
 package. **`pnpm refresh` stays Pokémon-first** on purpose — Scryfall and full
-TCGCSV walks are opt-in. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+TCGCSV walks are opt-in. Language-rich sources (Scryfall, YGOPRODeck, Lorcast,
+GoAgain, apitcg) and JP coverage gaps are in
+[docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 
 ### Non-obvious notes
 

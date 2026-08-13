@@ -50,6 +50,36 @@ TCGCSV base: `https://tcgcsv.com/tcgplayer/` (no API key). Fetch with
 Spreadsheet exporters (optional, for offline / verify workflows):
 `apis/tcgcsv_export.py`, `apis/scryfall_export.py`, `apis/ygoprodeck_export.py`.
 
+## Language-rich sources (Phase 4)
+
+Dedicated fetchers beyond English-only TCGCSV. Loaders live under
+`src/pokedb/sources/`; fetch with `PYTHONPATH=src python3 -m pokedb fetch --source …`.
+
+| Game | Source / loader | Languages | Fetch |
+| --- | --- | --- | --- |
+| Magic | Scryfall (`scryfall.py`) | ~19 (incl. `zhs`/`zht`/`ja`) | `pnpm fetch:mtg` |
+| Yu-Gi-Oh! | YGOPRODeck (`ygoprodeck.py`) | en/fr/de/it/pt only | `refresh:games` |
+| One Piece | apitcg (`apitcg.py`, alias `apitcg_onepiece.py`) + TCGCSV | English; **JP deferred** | `pnpm fetch:onepiece` |
+| Lorcana | Lorcast (`lorcast.py`) + TCGCSV | primarily en | `refresh:games` |
+| Flesh and Blood | GoAgain (`goagain.py`, alias `fab.py`) + TCGCSV | en | `refresh:games` |
+| DBS Fusion World | apitcg + TCGCSV | en | `refresh:games` |
+| Weiss Schwarz | TCGCSV only | en (JP Bushiroad sets **absent**) | TCGCSV |
+
+Language-rich loaders are registered **before** TCGCSV in `LOADERS`, so Scryfall
+beats TCGplayer English for Magic when both dumps are present.
+
+### Japanese / other-language gaps (follow-up scrapes)
+
+| Gap | Why | Follow-up |
+| --- | --- | --- |
+| Bandai JP One Piece cardlist | No automated scrape; EN via TCGCSV + apitcg | Official Bandai JP site adapter |
+| Weiss Schwarz Japanese | TCGplayer EN releases only | Bushiroad / JP marketplace scrape |
+| Yu-Gi-Oh! OCG Japanese | YGOPRODeck Western langs only | Konami DB / community OCG dump |
+| Lorcana non-English | Lorcast is EN-centric | Ravensburger regional dumps when available |
+
+Do not block the grading workflow on these scrapes — schedule as publisher-specific
+adapters.
+
 ## Sports & manufacturer lines (no catalog API)
 
 Soccer, football, wrestling, UFC, Topps, Panini, Upper Deck, and Skybox checklists
