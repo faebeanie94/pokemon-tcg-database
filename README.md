@@ -1,13 +1,15 @@
 # pokemon-tcg-database
 
-Every official Pokémon Trading Card Game set and card, in every language it has
-been printed in, plus the tools to browse and serve it.
+Multi-game trading and sports card catalog for a grading workflow: Pokémon (all
+languages), other TCGs (Magic, Yu-Gi-Oh, One Piece, Lorcana, …), and curated
+sports / entertainment checklists (Topps, Panini, Upper Deck, …).
 
 | Part | What it is | Start here |
 | --- | --- | --- |
-| **Card data** | The Python pipeline that merges the public sources into the one card database, an Excel workbook, and a JSON API. | [Card data](#card-data) |
+| **Card data** | The Python pipeline that merges sources into one SQLite database, an Excel workbook, and a JSON API. | [Card data](#card-data) |
 | **Web app** | A Next.js card matching service and operator console, reading that same database. | [Web app](#web-app) |
-| **Export scripts** | The standalone scripts (`apis/`) that produced the spreadsheets in this repo. | [Export scripts](#export-scripts) |
+| **Export scripts** | Standalone scripts in `apis/` for TCGdex, PikaQian, pokemontcg.io, PokeWallet. | [Export scripts](#export-scripts) |
+| **Data sources** | Which games have APIs vs need curation | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) |
 
 > **One database, two services.** `python -m pokedb build` produces
 > `build/pokemon_tcg.sqlite`, and that file is the single source of truth. Both
@@ -117,6 +119,17 @@ species name (リザードンex becomes "Charizard ex") and marked `pokeapi` in 
 `name_en_source` column. Names with an owner prefix are left untranslated
 rather than risk a wrong name on a label.
 
+Other games and sports checklists are documented in
+[docs/DATA_SOURCES.md](docs/DATA_SOURCES.md). Pokémon still comes from the
+sources above. Magic, Yu-Gi-Oh, One Piece and similar TCGs load from TCGCSV /
+Scryfall / etc. after `python -m pokedb fetch --source …`. Sports cards use
+curated JSON/xlsx — see [docs/SPORTS.md](docs/SPORTS.md).
+
+`card_uid` is `'<game>:<language>:<set slug>#<number>[#<parallel>]'` (for
+example `pokemon:en:bs#4`). Legacy Pokémon IDs without the game prefix still
+match; store the new form on new grading records. See
+[docs/MIGRATION.md](docs/MIGRATION.md).
+
 ## Commands
 
 ```bash
@@ -169,9 +182,11 @@ missing or older than the current build.
 
 The console at `/` has two modes. **Identify** takes what is printed on a card
 and shows the ranked candidates with the reason each matched, through the same
-`/api/match` endpoint the grading program calls. **Browse** pages through the
-catalog by name, set and collector number, for when a card has to be found by
-working through a set instead.
+`/api/match` endpoint the grading program calls. For sports cards, pick Game →
+Sports and fill in the three grading fields (set name, card name + parallel,
+number) instead of free text. **Browse** pages through the catalog by name, set
+and collector number, for when a card has to be found by working through a set
+instead.
 
 ## Getting started
 
@@ -212,11 +227,15 @@ flowchart TD
     decide -->|no| human["Operator picks from the candidates"]
 ```
 
-A set plus a collector number identifies a printing outright, so that pair is
-enough to report `unambiguous`. A name and number without a language usually is
-not: the Base Set Charizard is card 4 of 102 in English, French and German, and
-only the language separates them. Those come back as tied candidates for a
+A set plus a collector number identifies a TCG printing outright, so that pair
+is enough to report `unambiguous`. A name and number without a language usually
+is not: the Base Set Charizard is card 4 of 102 in English, French and German,
+and only the language separates them. Those come back as tied candidates for a
 human to settle.
+
+Sports matching is a separate path: set title + number is **not** enough to
+auto-accept when that number has parallel siblings (base Beckham #38 vs Halo
+Ref). `09/15` in the card line is a print run / serial, not a printed total.
 
 Names are matched through an FTS5 **trigram** index, which is what makes partial
 Japanese and Chinese names findable — a word tokenizer cannot split CJK text.
@@ -230,10 +249,11 @@ written to over HTTP.
 | ------ | ----- | ----------- |
 | POST | `/api/match` | Rank catalog rows against a described card |
 | GET | `/api/match?q=` | Same, for quick checks from a browser or shell |
-| GET | `/api/cards` | Search (`q`, `language`, `set`, `number`, `source`, `limit`, `offset`) |
-| GET | `/api/cards/:id` | One card by catalog ID |
-| GET | `/api/sets` | Sets (`language`, `q`, `limit`) |
-| GET | `/api/languages` | Languages with card counts |
+| GET | `/api/cards` | Search (`q`, `game`, `language`, `set`, `number`, `limit`, `offset`) |
+| GET | `/api/cards/:id` | One card by catalog ID (`card_uid`, URL-encoded) |
+| GET | `/api/sets` | Sets (`game`, `language`, `q`, `limit`) |
+| GET | `/api/languages` | Languages with card counts; also returns `games` |
+| GET | `/api/games` | Games with card counts |
 
 ```bash
 curl -X POST http://localhost:3000/api/match \
@@ -257,8 +277,15 @@ curl -X POST http://localhost:3000/api/match \
 }
 ```
 
-`name`, `language`, `set`, `number`, `printedTotal` and `cardId` can be sent
-instead of `query` when the caller already has them separated.
+`name`, `language`, `game`, `set`, `number`, `printedTotal` and `cardId` can be
+sent instead of `query` when the caller already has them separated. Sports
+grading uses `game: "sports"` plus `set`, `name` (card line) and `number`:
+
+```bash
+curl -X POST http://localhost:3000/api/match \
+  -H 'Content-Type: application/json' \
+  -d '{"game":"sports","set":"2025-26 TOPPS MANCHESTER UNITED TEAM SET","name":"SIR DAVID BECKHAM - HALO REF.","number":"38"}'
+```
 
 ## Scripts
 
@@ -279,8 +306,8 @@ There is **one** card database. Python builds it; both services read it.
 
 ```mermaid
 flowchart TD
-    xlsx["database.xlsx<br/>pikaqian_cards.xlsx"] --> build["python -m pokedb build"]
-    tcgdex["TCGdex API"] --> build
+    xlsx["database.xlsx<br/>pikaqian_cards.xlsx<br/>sports seed.json"] --> build["python -m pokedb build"]
+    tcgdex["TCGdex / TCGCSV / Scryfall / …"] --> build
     pokeapi["PokeAPI species names"] --> build
     build --> db[("build/pokemon_tcg.sqlite<br/>sets, cards")]
     db --> index["pnpm build:index<br/>adds match_cards, match_sets, cards_fts"]
@@ -308,6 +335,11 @@ answered.
 The one thing only the Next.js service does is free-text matching: a single box
 that reads "Charizard 4/102" or "SV1a 001", scores the candidates, explains why
 each matched, and says whether the top hit is safe to accept without a human.
+Sports cards use the same endpoint with three structured fields.
+
+Bandai, Konami, Wizards, Ravensburger, Topps, and Panini assert rights over card
+data and images. This catalog is for an **internal grading tool**; do not
+republish it without a license. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 
 ---
 

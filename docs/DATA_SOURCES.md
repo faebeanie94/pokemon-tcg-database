@@ -1,6 +1,8 @@
 # Multi-game data sources
 
 Which categories can be loaded automatically, and which need curation.
+`card_uid` cutover is in [MIGRATION.md](MIGRATION.md); sports checklists in
+[SPORTS.md](SPORTS.md).
 
 ## Automated (API / bulk dump)
 

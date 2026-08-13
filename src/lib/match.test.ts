@@ -115,6 +115,13 @@ describe("matchCards", () => {
     expect(result.unambiguous).toBe(true);
   });
 
+  it("still accepts a legacy UID without the game prefix", () => {
+    const result = matchCards(db, { query: "en:bs#4", language: "en" });
+
+    expect(result.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
+    expect(result.unambiguous).toBe(true);
+  });
+
   it("does not guess when a bare number is all it has", () => {
     const result = matchCards(db, { query: "4" });
 
