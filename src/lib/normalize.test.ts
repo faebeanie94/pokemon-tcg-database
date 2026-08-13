@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeName, normalizeNumber } from "./normalize";
+import { normalizeName, normalizeNumber, normalizeSportsNumber } from "./normalize";
 
 describe("normalizeName", () => {
   it("ignores case, accents and punctuation", () => {
@@ -21,8 +21,6 @@ describe("normalizeName", () => {
   });
 
   it("keeps Japanese voiced sounds distinct", () => {
-    // Unicode counts the dakuten and the long-vowel mark as diacritics, so
-    // folding accents globally would collapse these into each other.
     expect(normalizeName("リザードン")).not.toBe(normalizeName("リサトン"));
     expect(normalizeName("バク")).not.toBe(normalizeName("ハク"));
   });
@@ -59,5 +57,15 @@ describe("normalizeNumber", () => {
   it("strips separators", () => {
     expect(normalizeNumber(" 004 ")).toBe("4");
     expect(normalizeNumber("SWSH-045")).toBe("swsh45");
+  });
+});
+
+describe("normalizeSportsNumber", () => {
+  it("keeps hyphens that are part of the number", () => {
+    expect(normalizeSportsNumber("SSL-SM")).toBe("ssl-sm");
+  });
+
+  it("still collapses padded digit-only numbers", () => {
+    expect(normalizeSportsNumber("038")).toBe("38");
   });
 });

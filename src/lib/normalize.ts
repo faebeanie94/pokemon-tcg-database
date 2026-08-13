@@ -54,27 +54,24 @@ export function normalizeNumber(input: string | null | undefined): string {
 }
 
 /**
+ * Sports / entertainment card numbers often keep hyphens as significant
+ * separators ("SSL-SM"). Collapse case and punctuation except hyphens, then
+ * strip leading zeros from digit runs.
+ */
+export function normalizeSportsNumber(input: string | null | undefined): string {
+  if (!input) return "";
+  return input
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}-]/gu, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .replace(/\d+/g, (digits) => String(Number(digits)));
+}
+
+/**
  * Normalizes a set abbreviation ("BS", "sv1a") for comparison.
  */
 export function normalizeSetToken(input: string | null | undefined): string {
-  return normalizeName(input);
-}
-
-/**
- * Sports card numbers like "SSL-SM" must keep their letter groups intact.
- * Hyphens are dropped for comparison, but letters are not stripped the way a
- * pure digit normalizer might imply — same NFKC + letter/digit keep as
- * normalizeNumber, which already preserves "SSLSM" from "SSL-SM".
- *
- * Exposed separately so sports matching can document the intent.
- */
-export function normalizeSportsNumber(input: string | null | undefined): string {
-  return normalizeNumber(input);
-}
-
-/**
- * Fold a parallel label ("HALO REF.", "Ruby Ref") for comparison / card_uid.
- */
-export function normalizeParallel(input: string | null | undefined): string {
   return normalizeName(input);
 }

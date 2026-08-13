@@ -24,6 +24,9 @@ __pycache__/
 
 # downloaded source data (re-fetched by `python -m pokedb fetch`)
 data/raw/
+# but keep the curated sports seed (no public checklist API)
+!data/raw/sports/
+!data/raw/sports/seed.json
 
 # misc
 .DS_Store

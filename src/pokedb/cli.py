@@ -41,7 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     fetch.add_argument(
         "--game",
         action="append",
-        choices=sorted(TCGCSV_CATEGORIES.keys()) + sorted(GAME_CODES),
+        choices=sorted(set(TCGCSV_CATEGORIES) | set(GAME_CODES)),
         help="limit TCGCSV / apitcg games (repeatable)",
     )
 

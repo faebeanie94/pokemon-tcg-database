@@ -35,9 +35,13 @@ export async function POST(request: Request) {
     query: asString(input.query),
     name: asString(input.name),
     language: asString(input.language),
+    game: asString(input.game),
     set: asString(input.set),
     number: asString(input.number),
     cardId: asString(input.cardId ?? input.card_id),
+    parallel: asString(input.parallel),
+    subject: asString(input.subject ?? input.subjectName ?? input.subject_name),
+    sports: input.sports === true || asString(input.game) === "sports",
     printedTotal: printedTotal ? Number(printedTotal) : undefined,
     limit: input.limit === undefined ? undefined : Number(input.limit),
   };
@@ -48,11 +52,15 @@ export async function POST(request: Request) {
     matchRequest.set,
     matchRequest.number,
     matchRequest.cardId,
+    matchRequest.subject,
   ].some((v) => v && v.trim());
 
   if (!hasSomethingToMatchOn) {
     return NextResponse.json(
-      { error: "provide at least one of: query, name, set, number, cardId" },
+      {
+        error:
+          "provide at least one of: query, name, set, number, cardId, subject",
+      },
       { status: 400 }
     );
   }
@@ -64,13 +72,26 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q") ?? searchParams.get("query");
-  if (!query?.trim()) {
-    return NextResponse.json({ error: "q is required" }, { status: 400 });
+  const set = searchParams.get("set") ?? undefined;
+  const name = searchParams.get("name") ?? undefined;
+  const number = searchParams.get("number") ?? undefined;
+  const game = searchParams.get("game") ?? undefined;
+
+  if (!query?.trim() && !(set && name && number)) {
+    return NextResponse.json(
+      { error: "q is required, or provide set+name+number" },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json(
     matchCards(getDb(), {
-      query,
+      query: query ?? undefined,
+      set,
+      name,
+      number,
+      game,
+      sports: game === "sports",
       language: searchParams.get("language") ?? undefined,
       limit: searchParams.get("limit")
         ? Number(searchParams.get("limit"))
