@@ -17,31 +17,46 @@ def sample_db(tmp_path: Path) -> Path:
     connection = sqlite3.connect(path)
     connection.executescript(SCHEMA.read_text(encoding="utf-8"))
     connection.executemany(
+        "INSERT INTO games (code, name, kind) VALUES (?, ?, ?)",
+        [("pokemon", "Pokémon TCG", "tcg")],
+    )
+    connection.executemany(
         "INSERT INTO languages (code, name_en, name_native, region) VALUES (?, ?, ?, ?)",
         [("en", "English", "English", "western"), ("ja", "Japanese", "日本語", "asian")],
     )
     connection.executemany(
         """
-        INSERT INTO sets (set_uid, language, name, name_en, abbreviation, release_date,
+        INSERT INTO sets (set_uid, game, language, name, name_en, abbreviation, release_date,
                           release_year, card_count_official, sources, source_count)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'test', 1)
+        VALUES (?, 'pokemon', ?, ?, ?, ?, ?, ?, ?, 'test', 1)
         """,
         [
-            ("en:svi", "en", "Scarlet & Violet", "Scarlet & Violet", "SVI",
+            ("pokemon:en:svi", "en", "Scarlet & Violet", "Scarlet & Violet", "SVI",
              "2023-03-31", 2023, 198),
-            ("ja:sv1s", "ja", "スカーレットex", "Scarlet ex", "SV1S", "2023-01-20", 2023, 78),
+            ("pokemon:ja:sv1s", "ja", "スカーレットex", "Scarlet ex", "SV1S",
+             "2023-01-20", 2023, 78),
         ],
     )
     connection.executemany(
         """
-        INSERT INTO cards (card_uid, set_uid, language, number, number_prefix, number_value,
+        INSERT INTO cards (card_uid, set_uid, game, language, number, number_prefix, number_value,
                            name, name_en, name_en_source, sources)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'test')
+        VALUES (?, ?, 'pokemon', ?, ?, ?, ?, ?, ?, ?, 'test')
         """,
         [
-            ("en:svi#004", "en:svi", "en", "004", None, 4, "Sprigatito", None, None),
-            ("en:svi#TG12", "en:svi", "en", "TG12", "TG", 12, "Pikachu", None, None),
-            ("ja:sv1s#001", "ja:sv1s", "ja", "001", None, 1, "リザードン", "Charizard", "pokeapi"),
+            ("pokemon:en:svi#004", "pokemon:en:svi", "en", "004", None, 4, "Sprigatito", None, None),
+            ("pokemon:en:svi#TG12", "pokemon:en:svi", "en", "TG12", "TG", 12, "Pikachu", None, None),
+            (
+                "pokemon:ja:sv1s#001",
+                "pokemon:ja:sv1s",
+                "ja",
+                "001",
+                None,
+                1,
+                "リザードン",
+                "Charizard",
+                "pokeapi",
+            ),
         ],
     )
     connection.commit()

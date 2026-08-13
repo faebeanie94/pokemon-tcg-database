@@ -23,8 +23,8 @@ __pycache__/
 *.pyc
 
 # downloaded source data (re-fetched by `python -m pokedb fetch`)
-data/raw/
-# but keep the curated sports seed (no public checklist API)
+# Ignore contents of data/raw/ but keep the curated sports seed tracked.
+data/raw/*
 !data/raw/sports/
 !data/raw/sports/seed.json
 

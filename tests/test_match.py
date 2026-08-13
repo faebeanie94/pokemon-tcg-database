@@ -113,7 +113,41 @@ def test_set_identifiers_are_disambiguated_by_year():
     registry.add(curated(name="Surging Sparks", abbreviation="SSP", release_date="2024-11-08"))
     registry.assign_uids()
 
-    assert {item.set_uid for item in registry.canonical} == {"en:ssp", "en:ssp-2024"}
+    assert {item.set_uid for item in registry.canonical} == {
+        "pokemon:en:ssp",
+        "pokemon:en:ssp-2024",
+    }
+
+
+def test_same_code_in_different_games_does_not_merge():
+    registry = make_registry()
+    registry.add(curated(name="Base Set", abbreviation="BS", release_date="1999-01-09"))
+    registry.add(
+        SetRecord(
+            source="tcgdex",
+            game="mtg",
+            language="en",
+            source_set_id="bs",
+            abbreviation="BS",
+            name="Battlebond",
+            release_date="2018-06-08",
+        )
+    )
+    registry.assign_uids()
+    assert len(registry.canonical) == 2
+    uids = {item.set_uid for item in registry.canonical}
+    assert "pokemon:en:bs" in uids
+    assert "mtg:en:bs" in uids
+
+
+def test_parallel_cards_get_distinct_uids():
+    from pokedb.match import make_card_uid
+
+    base = make_card_uid("sports:en:set", "38", None)
+    parallel = make_card_uid("sports:en:set", "38", "HALO REF")
+    assert base == "sports:en:set#38"
+    assert parallel == "sports:en:set#38#haloref"
+    assert base != parallel
 
 
 def test_cards_from_two_sources_merge_into_one_row():

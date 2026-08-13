@@ -1,0 +1,100 @@
+{
+  "sets": [
+    {
+      "id": "2025-26-topps-manchester-united-team-set",
+      "name": "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
+      "manufacturer": "Topps",
+      "sport": "soccer",
+      "product_year": "2025-26",
+      "release_date": "2025-09-01",
+      "language": "en"
+    },
+    {
+      "id": "2024-panini-flawless-wwe",
+      "name": "2024 PANINI FLAWLESS WWE",
+      "manufacturer": "Panini",
+      "sport": "wrestling",
+      "product_year": "2024",
+      "release_date": "2024-11-15",
+      "language": "en"
+    },
+    {
+      "id": "2025-topps-chrome-football",
+      "name": "2025 TOPPS CHROME FOOTBALL",
+      "manufacturer": "Topps",
+      "sport": "football",
+      "product_year": "2025",
+      "release_date": "2025-10-01",
+      "language": "en"
+    },
+    {
+      "id": "2026-upper-deck-aew",
+      "name": "2026 UPPER DECK AEW WRESTLING",
+      "manufacturer": "Upper Deck",
+      "sport": "wrestling",
+      "product_year": "2026",
+      "release_date": "2026-01-15",
+      "language": "en"
+    }
+  ],
+  "cards": [
+    {
+      "set_id": "2025-26-topps-manchester-united-team-set",
+      "number": "38",
+      "subject_name": "SIR DAVID BECKHAM",
+      "display_name": "SIR DAVID BECKHAM"
+    },
+    {
+      "set_id": "2025-26-topps-manchester-united-team-set",
+      "number": "38",
+      "subject_name": "SIR DAVID BECKHAM",
+      "parallel": "HALO REF",
+      "display_name": "SIR DAVID BECKHAM - HALO REF."
+    },
+    {
+      "set_id": "2024-panini-flawless-wwe",
+      "number": "SSL-SM",
+      "subject_name": "SHAWN MICHAELS",
+      "display_name": "SHAWN MICHAELS"
+    },
+    {
+      "set_id": "2024-panini-flawless-wwe",
+      "number": "SSL-SM",
+      "subject_name": "SHAWN MICHAELS",
+      "notations": "AUTO",
+      "parallel": "RUBY REF",
+      "serial_number": "09",
+      "print_run": 15,
+      "display_name": "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15"
+    },
+    {
+      "set_id": "2025-topps-chrome-football",
+      "number": "1",
+      "subject_name": "CJ STROUD",
+      "display_name": "CJ STROUD"
+    },
+    {
+      "set_id": "2025-topps-chrome-football",
+      "number": "1",
+      "subject_name": "CJ STROUD",
+      "parallel": "REFRACTOR",
+      "display_name": "CJ STROUD - REFRACTOR"
+    },
+    {
+      "set_id": "2026-upper-deck-aew",
+      "number": "45",
+      "subject_name": "CM PUNK",
+      "display_name": "CM PUNK"
+    },
+    {
+      "set_id": "2026-upper-deck-aew",
+      "number": "45",
+      "subject_name": "CM PUNK",
+      "notations": "AUTO",
+      "parallel": "GOLD",
+      "serial_number": "10",
+      "print_run": 25,
+      "display_name": "CM PUNK - AUTO - GOLD - 10/25"
+    }
+  ]
+}

@@ -46,12 +46,12 @@ def test_cards_can_be_filtered_by_language_and_set_code(client):
 
 
 def test_set_cards_are_returned_in_printed_order(client):
-    body = client.get("/v1/sets/en:svi/cards").json()
+    body = client.get("/v1/sets/pokemon:en:svi/cards").json()
     assert [item["card_number"] for item in body["items"]] == ["004", "TG12"]
 
 
 def test_unknown_set_returns_404(client):
-    assert client.get("/v1/sets/en:nope").status_code == 404
+    assert client.get("/v1/sets/pokemon:en:nope").status_code == 404
 
 
 def test_languages_lists_coverage(client):
