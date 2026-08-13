@@ -216,6 +216,65 @@ describe("sports matching", () => {
     );
     expect(result.unambiguous).toBe(true);
   });
+
+  it("accepts structured subject/parallel/manufacturer fields", () => {
+    const result = matchCards(db, {
+      game: "sports",
+      set: "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
+      subject: "SIR DAVID BECKHAM",
+      parallel: "HALO REF",
+      number: "38",
+      manufacturer: "Topps",
+      sport: "soccer",
+    });
+
+    expect(result.interpretation.subject).toBe("SIR DAVID BECKHAM");
+    expect(result.interpretation.parallel).toBe("HALO REF");
+    expect(result.interpretation.manufacturer).toBe("Topps");
+    expect(result.interpretation.sport).toBe("soccer");
+    expect(result.candidates[0].card.card_uid).toBe(
+      "sports:en:202526toppsmanchesterunitedteamset#38#haloref"
+    );
+    expect(result.candidates[0].matchedOn).toContain("parallel");
+    expect(result.candidates[0].matchedOn).toContain("manufacturer");
+    expect(result.unambiguous).toBe(true);
+  });
+
+  it("scores set+number+parallel above set+number+subject alone", () => {
+    const withParallel = matchCards(db, {
+      game: "sports",
+      set: "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
+      name: "SIR DAVID BECKHAM - HALO REF.",
+      number: "38",
+    });
+    const subjectOnly = matchCards(db, {
+      game: "sports",
+      set: "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
+      name: "SIR DAVID BECKHAM",
+      number: "38",
+    });
+
+    expect(withParallel.candidates[0].score).toBeGreaterThan(
+      subjectOnly.candidates[0].score
+    );
+  });
+
+  it("surfaces a provided serial without requiring it for the match", () => {
+    const result = matchCards(db, {
+      game: "sports",
+      set: "2024 PANINI FLAWLESS WWE",
+      subject: "SHAWN MICHAELS",
+      parallel: "RUBY REF",
+      number: "SSL-SM",
+      serial: "09",
+    });
+
+    expect(result.interpretation.serial_number).toBe("09");
+    expect(result.candidates[0].card.card_uid).toBe(
+      "sports:en:2024paniniflawlesswwe#SSL-SM#rubyref"
+    );
+    expect(result.unambiguous).toBe(true);
+  });
 });
 
 describe("resolveSetTokens", () => {

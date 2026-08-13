@@ -9,6 +9,9 @@ export const dynamic = "force-dynamic";
  * card, get back the catalog rows it could be, ranked, with the reasons each
  * one scored and whether the top hit is decisive enough to accept without a
  * human looking at it.
+ *
+ * Sports grading accepts structured fields:
+ *   { game, set, name, number, parallel?, subject?, manufacturer?, sport?, serial? }
  */
 export async function POST(request: Request) {
   let body: unknown;
@@ -41,6 +44,9 @@ export async function POST(request: Request) {
     cardId: asString(input.cardId ?? input.card_id),
     parallel: asString(input.parallel),
     subject: asString(input.subject ?? input.subjectName ?? input.subject_name),
+    manufacturer: asString(input.manufacturer),
+    sport: asString(input.sport),
+    serial: asString(input.serial ?? input.serial_number ?? input.serialNumber),
     sports: input.sports === true || asString(input.game) === "sports",
     printedTotal: printedTotal ? Number(printedTotal) : undefined,
     limit: input.limit === undefined ? undefined : Number(input.limit),
@@ -93,6 +99,11 @@ export async function GET(request: Request) {
       game,
       sports: game === "sports",
       language: searchParams.get("language") ?? undefined,
+      parallel: searchParams.get("parallel") ?? undefined,
+      subject: searchParams.get("subject") ?? undefined,
+      manufacturer: searchParams.get("manufacturer") ?? undefined,
+      sport: searchParams.get("sport") ?? undefined,
+      serial: searchParams.get("serial") ?? undefined,
       limit: searchParams.get("limit")
         ? Number(searchParams.get("limit"))
         : undefined,

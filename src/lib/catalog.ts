@@ -36,6 +36,7 @@ export interface CatalogCard {
   series_name: string | null;
   manufacturer: string | null;
   sport: string | null;
+  product_year?: string | null;
   /** The denominator printed on the card: the 102 in '4/102'. */
   printed_total: number | null;
   card_number: string;
@@ -77,7 +78,7 @@ export interface CatalogSet {
 const CARD_FIELDS = `
   c.card_uid, c.set_uid, c.game, c.language,
   s.name AS set_name, s.name_en AS set_name_en, s.abbreviation AS set_code,
-  s.series_name, s.manufacturer, s.sport,
+  s.series_name, s.manufacturer, s.sport, s.product_year,
   s.card_count_official AS printed_total,
   c.number AS card_number, c.name,
   COALESCE(c.name_en, CASE WHEN c.language = 'en' THEN c.name END) AS english_name,

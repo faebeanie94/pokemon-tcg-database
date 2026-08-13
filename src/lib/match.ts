@@ -13,7 +13,11 @@ import {
   pickNumberToken,
   type ParsedQuery,
 } from "./query";
-import { parseSportsCardLine } from "./sports";
+import {
+  parseSportsCardLine,
+  parseSportsNumber,
+  parseSportsSetName,
+} from "./sports-query";
 
 /**
  * Card matching for the grading workflow: given whatever an operator can read
@@ -31,6 +35,10 @@ export interface MatchRequest {
   cardId?: string;
   parallel?: string;
   subject?: string;
+  manufacturer?: string;
+  sport?: string;
+  /** Instance serial from the grading slip, e.g. "09" from 09/15. */
+  serial?: string;
   /** Prefer sports grading path when true or when game === 'sports'. */
   sports?: boolean;
   limit?: number;
@@ -57,6 +65,8 @@ export interface Interpretation {
   game?: string;
   parallel?: string;
   subject?: string;
+  manufacturer?: string;
+  sport?: string;
   serial_number?: string;
   print_run?: number;
   sets: { token: string; setUids: string[] }[];
@@ -73,6 +83,8 @@ const POINTS = {
   parallel: 25,
   serial: 15,
   baseNoParallel: 8,
+  manufacturer: 8,
+  season: 6,
 } as const;
 
 const CONFIDENT_SCORE = POINTS.set + POINTS.number;
@@ -110,6 +122,11 @@ function matchSportsCards(db: Database, request: MatchRequest): MatchResponse {
   const numberRaw = (request.number ?? "").trim();
   const language = request.language?.trim() || undefined;
   const game = request.game?.trim() || "sports";
+  const sport = request.sport?.trim() || undefined;
+
+  const setHints = setRaw ? parseSportsSetName(setRaw) : undefined;
+  const manufacturer =
+    request.manufacturer?.trim() || setHints?.manufacturer || undefined;
 
   const line = nameRaw
     ? parseSportsCardLine(nameRaw)
@@ -118,14 +135,23 @@ function matchSportsCards(db: Database, request: MatchRequest): MatchResponse {
         subjectName: request.subject ?? "",
         parallel: request.parallel,
         notations: [] as string[],
+        serialNumber: request.serial,
         displayName: request.name ?? "",
       };
 
   const parallel = request.parallel?.trim() || line.parallel;
   const subject = request.subject?.trim() || line.subjectName;
-  const numberNorm = numberRaw ? normalizeSportsNumber(numberRaw) : undefined;
+  const numberParsed = numberRaw ? parseSportsNumber(numberRaw) : undefined;
+  const numberNorm = numberParsed?.normalized;
+  const serialNumber = request.serial?.trim() || line.serialNumber;
 
-  const setUids = setRaw ? resolveSportsSets(db, setRaw, game) : [];
+  const setUids = setRaw
+    ? resolveSportsSets(db, setRaw, game, {
+        manufacturer,
+        productYear: setHints?.productYear,
+        sport,
+      })
+    : [];
 
   const interpretation: Interpretation = {
     name: line.displayName || nameRaw || undefined,
@@ -134,7 +160,9 @@ function matchSportsCards(db: Database, request: MatchRequest): MatchResponse {
     game,
     parallel,
     subject: subject || undefined,
-    serial_number: line.serialNumber,
+    manufacturer,
+    sport,
+    serial_number: serialNumber,
     print_run: line.printRun,
     sets: setUids.length ? [{ token: setRaw, setUids }] : [],
   };
@@ -148,6 +176,8 @@ function matchSportsCards(db: Database, request: MatchRequest): MatchResponse {
     displayNorm: normalizeName(line.displayName || nameRaw),
     game,
     language,
+    manufacturer,
+    sport,
   })) {
     if (!candidates.has(card.card_uid)) {
       candidates.set(card.card_uid, { card, score: 0, matchedOn: [] });
@@ -161,9 +191,12 @@ function matchSportsCards(db: Database, request: MatchRequest): MatchResponse {
       subjectNorm: normalizeName(subject),
       parallelNorm: normalizeName(parallel),
       displayNorm: normalizeName(line.displayName || nameRaw),
-      serial_number: line.serialNumber,
+      serial_number: serialNumber,
       print_run: line.printRun,
       inputHasParallel: !!parallel,
+      manufacturer,
+      productYear: setHints?.productYear,
+      sport,
     });
   }
 
@@ -212,7 +245,12 @@ function matchSportsCards(db: Database, request: MatchRequest): MatchResponse {
   return { interpretation, candidates: ranked.slice(0, limit), unambiguous };
 }
 
-function resolveSportsSets(db: Database, setRaw: string, game: string): string[] {
+function resolveSportsSets(
+  db: Database,
+  setRaw: string,
+  game: string,
+  hints: { manufacturer?: string; productYear?: string; sport?: string } = {}
+): string[] {
   const norm = normalizeSetToken(setRaw);
   const exact = db
     .prepare(
@@ -231,7 +269,34 @@ function resolveSportsSets(db: Database, setRaw: string, game: string): string[]
         LIMIT 50`
     )
     .all(game, norm, setRaw, `%${setRaw}%`) as { set_uid: string }[];
-  return like.map((r) => r.set_uid);
+  if (like.length) return like.map((r) => r.set_uid);
+
+  // Fall back to manufacturer + season / product-year hints when the full
+  // title did not resolve (partial set labels from operators).
+  if (hints.manufacturer || hints.productYear || hints.sport) {
+    const clauses: string[] = ["game = ?"];
+    const params: unknown[] = [game];
+    if (hints.manufacturer) {
+      clauses.push("lower(manufacturer) = lower(?)");
+      params.push(hints.manufacturer);
+    }
+    if (hints.productYear) {
+      clauses.push("product_year = ?");
+      params.push(hints.productYear);
+    }
+    if (hints.sport) {
+      clauses.push("lower(sport) = lower(?)");
+      params.push(hints.sport);
+    }
+    const hinted = db
+      .prepare(
+        `SELECT set_uid FROM sets WHERE ${clauses.join(" AND ")} LIMIT 50`
+      )
+      .all(...params) as { set_uid: string }[];
+    return hinted.map((r) => r.set_uid);
+  }
+
+  return [];
 }
 
 interface SportsSignals {
@@ -242,6 +307,8 @@ interface SportsSignals {
   displayNorm: string;
   game: string;
   language?: string;
+  manufacturer?: string;
+  sport?: string;
 }
 
 function gatherSportsCandidates(db: Database, signals: SportsSignals): CatalogCard[] {
@@ -337,6 +404,9 @@ function scoreSportsCandidate(
     serial_number?: string;
     print_run?: number;
     inputHasParallel: boolean;
+    manufacturer?: string;
+    productYear?: string;
+    sport?: string;
   }
 ): void {
   const { card } = candidate;
@@ -351,6 +421,29 @@ function scoreSportsCandidate(
   if (signals.setUids.length && signals.setUids.includes(card.set_uid)) {
     candidate.score += POINTS.set;
     candidate.matchedOn.push("set");
+  }
+
+  if (
+    signals.manufacturer &&
+    card.manufacturer &&
+    normalizeName(card.manufacturer) === normalizeName(signals.manufacturer)
+  ) {
+    candidate.score += POINTS.manufacturer;
+    candidate.matchedOn.push("manufacturer");
+  }
+
+  if (signals.productYear && card.product_year === signals.productYear) {
+    candidate.score += POINTS.season;
+    candidate.matchedOn.push("season");
+  }
+
+  if (
+    signals.sport &&
+    card.sport &&
+    normalizeName(card.sport) === normalizeName(signals.sport)
+  ) {
+    candidate.score += POINTS.season;
+    candidate.matchedOn.push("sport");
   }
 
   if (signals.subjectNorm) {
@@ -386,11 +479,11 @@ function scoreSportsCandidate(
     candidate.score -= 10;
   }
 
+  // Serial is instance data: boost when it matches, but never required for identity.
   if (
     signals.serial_number &&
-    signals.print_run &&
     card.serial_number === signals.serial_number &&
-    card.print_run === signals.print_run
+    (!signals.print_run || card.print_run === signals.print_run)
   ) {
     candidate.score += POINTS.serial;
     candidate.matchedOn.push("serial");
