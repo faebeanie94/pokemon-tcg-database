@@ -45,3 +45,21 @@ def test_seed_loads_the_michaels_ruby_serial():
     assert ruby["print_run"] == 15
     # 09/15 is a print run, not a Pokémon-style printed total.
     assert ruby["number"] != "09"
+
+
+def test_seed_covers_manufacturers_and_sports():
+    data = load()
+    assert data is not None
+    manufacturers = {s.manufacturer for s in data.sets}
+    sports = {s.sport for s in data.sets}
+    assert {"Topps", "Panini", "Upper Deck", "Skybox"} <= manufacturers
+    assert {"soccer", "football", "wrestling", "basketball", "ufc"} <= sports
+
+    rows = _merged_seed_rows()
+    assert len(rows) >= 20
+    by_uid = {row["card_uid"]: row for row in rows}
+    assert any("messi" in (row["subject_name"] or "").lower() for row in rows)
+    assert any("jordan" in (row["subject_name"] or "").lower() for row in rows)
+    assert any("mcgregor" in (row["subject_name"] or "").lower() for row in rows)
+    # Skybox set is present as a manufacturer tag example.
+    assert any(uid.startswith("sports:en:199697skyboxpremiumbasketball") for uid in by_uid)

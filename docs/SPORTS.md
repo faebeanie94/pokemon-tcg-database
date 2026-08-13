@@ -8,10 +8,30 @@ data as the default ingestion path.
 
 | Path | Purpose |
 | --- | --- |
-| [`data/raw/sports/seed.json`](../data/raw/sports/seed.json) | Built-in seed (Beckham / Michaels / sample football & AEW) |
+| [`data/raw/sports/seed.json`](../data/raw/sports/seed.json) | Built-in seed (grading examples + manufacturer coverage) |
 | `sports_checklists.xlsx` (repo root or `data/`) | Optional operator workbook |
 | [`src/pokedb/sources/sports_json.py`](../src/pokedb/sources/sports_json.py) | Loads seed.json |
 | [`src/pokedb/sources/sports_xlsx.py`](../src/pokedb/sources/sports_xlsx.py) | Loads the xlsx when present |
+
+## Seed coverage
+
+The tracked seed is a starter checklist for operators, not a complete catalog:
+
+| Set | Manufacturer | Sport | Notes |
+| --- | --- | --- | --- |
+| 2025-26 Topps Manchester United Team Set | Topps | soccer | Beckham #38 base + Halo Ref |
+| 2024 Panini Flawless WWE | Panini | wrestling | Michaels SSL-SM + Undertaker auto |
+| 2025 Topps Chrome Football | Topps | football | Mahomes + Stroud RC parallels |
+| 2026 Upper Deck AEW Wrestling | Upper Deck | wrestling | CM Punk + MJF auto |
+| 2024 Panini Prizm Soccer | Panini | soccer | Messi / Mbappé parallels |
+| 1996-97 Skybox Premium Basketball | Skybox | basketball | Jordan + Kobe RC (manufacturer tag) |
+| 2024 Topps Chrome UFC | Topps | ufc | McGregor + Makhachev auto |
+
+Grow this file (or the xlsx) as operators need more releases. After editing:
+
+```bash
+PYTHONPATH=src python3 -m pokedb build && pnpm build:index
+```
 
 ## seed.json shape
 
@@ -69,7 +89,7 @@ curl -s -X POST http://localhost:3000/api/match \
   -d '{"game":"sports","set":"...","name":"...","number":"..."}'
 ```
 
-## Backlog (no API)
+## Phase 5 backlog (no API)
 
-Bandai Carddass, Meiji, Marvel trading cards (non–Dice Masters), UFC lines —
-same curated-spreadsheet approach when needed. See [DATA_SOURCES.md](DATA_SOURCES.md).
+Bandai Carddass, Meiji, Marvel trading cards (non–Dice Masters) — same curated
+spreadsheet approach when needed. See [DATA_SOURCES.md](DATA_SOURCES.md).

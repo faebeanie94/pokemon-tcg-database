@@ -8,7 +8,7 @@ sports / entertainment checklists (Topps, Panini, Upper Deck, …).
 | --- | --- | --- |
 | **Card data** | The Python pipeline that merges sources into one SQLite database, an Excel workbook, and a JSON API. | [Card data](#card-data) |
 | **Web app** | A Next.js card matching service and operator console, reading that same database. | [Web app](#web-app) |
-| **Export scripts** | Standalone scripts in `apis/` for TCGdex, PikaQian, pokemontcg.io, PokeWallet. | [Export scripts](#export-scripts) |
+| **Export scripts** | Standalone scripts in `apis/` for TCGdex, TCGCSV, Scryfall, YGOPRODeck, PikaQian, … | [Export scripts](#export-scripts) |
 | **Data sources** | Which games have APIs vs need curation | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) |
 
 > **One database, two services.** `python -m pokedb build` produces
@@ -201,8 +201,11 @@ pnpm build:index                          # derive the match index (~1 second)
 pnpm dev                                  # http://localhost:3000
 ```
 
-Later refreshes are one command: `pnpm refresh` rebuilds the card data and the
-match index together.
+Later refreshes are one command: `pnpm refresh` rebuilds **Pokémon** card data
+(TCGdex) and the match index. For other TCGs use `pnpm refresh:games`,
+`pnpm fetch:mtg`, or `pnpm fetch:onepiece` — see
+[docs/DATA_SOURCES.md](docs/DATA_SOURCES.md). Scryfall is never part of the
+default refresh (hundreds of MB).
 
 If `build/pokemon_tcg.sqlite` does not exist the app says so and stops, rather
 than serving an empty catalog. Point it elsewhere with `POKEDB_DB`, the same
@@ -293,7 +296,10 @@ curl -X POST http://localhost:3000/api/match \
 | ------- | ----------- |
 | `pnpm dev` | Development server on port 3000 |
 | `pnpm build:index` | Derive the match index from the card database |
-| `pnpm refresh` | Rebuild the card data and the match index together |
+| `pnpm refresh` | TCGdex (Pokémon) fetch + build + match index |
+| `pnpm refresh:games` | Also TCGCSV / YGOPRODeck / Lorcast / GoAgain / apitcg |
+| `pnpm fetch:mtg` | Scryfall bulk download only (then `build` + `build:index`) |
+| `pnpm fetch:onepiece` | TCGCSV + apitcg for One Piece |
 | `pnpm build` / `pnpm start` | Production build and server |
 | `pnpm lint` | ESLint |
 | `pnpm test` | Vitest suite |
@@ -345,11 +351,16 @@ republish it without a license. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)
 
 # Export scripts
 
-`apis/` holds the standalone scripts that produced the spreadsheets in this
-repo: `tcgdex_export.py` (which wrote `tcgdex_cards.xlsx`),
-`pikaqian_export.py` (`pikaqian_cards.xlsx`), plus exporters for pokemontcg.io
-and PokeWallet with resumable checkpoints. They run independently of the
-`pokedb` pipeline, which fetches from TCGdex itself.
+`apis/` holds standalone scripts for spreadsheet / dump workflows. They run
+independently of the `pokedb` pipeline (which fetches into `data/raw/` itself):
+
+| Script | Purpose |
+| --- | --- |
+| `tcgdex_export.py` | Pokémon workbook; `id` column feeds `pokedb verify` |
+| `tcgcsv_export.py` | One TCGplayer category → xlsx (`--game onepiece`) |
+| `scryfall_export.py` | Magic bulk dump (`all_cards` / `default_cards`) |
+| `ygoprodeck_export.py` | Yu-Gi-Oh! JSON per language |
+| `pikaqian_export.py` / `pokemontcgio_export.py` / `pokewallet_export.py` | Pokémon sources with API keys |
 
 API keys are read from the environment, never hard-coded — see
 [`.env.example`](.env.example). Earlier commits contained live keys, so the
@@ -360,6 +371,9 @@ compromised and reissued.
 pip install -r apis/requirements.txt
 
 python3 apis/tcgdex_export.py           # no key needed, ~20 seconds
+python3 apis/tcgcsv_export.py --game onepiece
+python3 apis/scryfall_export.py --type default_cards
+python3 apis/ygoprodeck_export.py --language en
 POKEMONTCGIO_API_KEY=... python3 apis/pokemontcgio_export.py
 PIKAQIAN_API_KEY=...     python3 apis/pikaqian_export.py    # 500 requests/MONTH
 POKEWALLET_API_KEY=...   python3 apis/pokewallet_export.py  # 100/hour, 1000/day

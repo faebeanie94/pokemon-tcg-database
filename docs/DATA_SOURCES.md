@@ -4,14 +4,35 @@ Which categories can be loaded automatically, and which need curation.
 `card_uid` cutover is in [MIGRATION.md](MIGRATION.md); sports checklists in
 [SPORTS.md](SPORTS.md).
 
+## Refresh policy
+
+| Script | What it fetches | When to use |
+| --- | --- | --- |
+| `pnpm refresh` | **TCGdex only** (Pokémon), then build + match index | Daily Pokémon refresh — stays fast |
+| `pnpm refresh:games` | TCGdex + TCGCSV + YGOPRODeck + Lorcast + GoAgain + apitcg | Multi-game without Scryfall’s huge dump |
+| `pnpm fetch:mtg` | Scryfall bulk only | Magic; run `pokedb build && pnpm build:index` after |
+| `pnpm fetch:onepiece` | TCGCSV + apitcg for One Piece | English One Piece; no Bandai JP scrape |
+
+Scryfall `all_cards` is hundreds of MB and is **opt-in**, never part of
+`pnpm refresh` / `refresh:games`. Prefer fetching only the games you grade:
+
+```bash
+PYTHONPATH=src python3 -m pokedb fetch --source tcgcsv --game onepiece --game lorcana
+PYTHONPATH=src python3 -m pokedb build
+pnpm build:index
+```
+
+`python -m pokedb update --source scryfall` also works: TCGdex always runs on
+`update`, then any extra `--source` values.
+
 ## Automated (API / bulk dump)
 
 | Category | Source | Notes |
 | --- | --- | --- |
-| Pokémon (all languages) | TCGdex + PikaQian + database.xlsx | Existing pipeline |
-| Magic: The Gathering (all languages) | Scryfall bulk `All Cards` | Best multilingual coverage |
+| Pokémon (all languages) | TCGdex + PikaQian + database.xlsx | Default `pnpm refresh` path |
+| Magic: The Gathering (all languages) | Scryfall bulk `All Cards` | Opt-in via `pnpm fetch:mtg` |
 | Yu-Gi-Oh! | TCGCSV (cat 2) + YGOPRODeck | YGOPRODeck: en/fr/de/it/pt only; no Japanese OCG text |
-| One Piece | TCGCSV (cat 68) + apitcg + Bandai JP cardlist | English via TCGCSV; Japanese needs Bandai scrape |
+| One Piece | TCGCSV (cat 68) + apitcg | English-first; Bandai JP cardlist scrape is **deferred** |
 | Lorcana | TCGCSV (cat 71) + Lorcast | English-centric |
 | Flesh and Blood | TCGCSV (cat 62) + GoAgain / fab-cube | |
 | Weiss Schwarz | TCGCSV (cat 20) | English releases only on TCGplayer |
@@ -24,13 +45,16 @@ Which categories can be loaded automatically, and which need curation.
 
 TCGCSV base: `https://tcgcsv.com/tcgplayer/` (no API key).
 
+Spreadsheet exporters (optional, for offline / verify workflows):
+`apis/tcgcsv_export.py`, `apis/scryfall_export.py`, `apis/ygoprodeck_export.py`.
+
 ## Sports & manufacturer lines (no catalog API)
 
 Soccer, football, wrestling, UFC, Topps, Panini, Upper Deck, and Skybox checklists
 are not published as structured APIs. Ingestion options:
 
-1. **Curated spreadsheets** (default) — `sports_checklists.xlsx` / seed JSON, same
-   pattern as `database.xlsx`.
+1. **Curated spreadsheets** (default) — `data/raw/sports/seed.json` /
+   `sports_checklists.xlsx`, same pattern as `database.xlsx`.
 2. TCDB / Beckett scraping (fragile, terms-of-service risk).
 3. Commercial catalog vendors (e.g. CardSight).
 
@@ -45,14 +69,18 @@ Sports grading format (operator fields):
 Parallels, inserts (`AUTO`), and serials (`09/15`) are first-class card columns.
 `09/15` is a print run, not a Pokémon-style printed total.
 
-## Manual / community-only (backlog)
+## Manual / community-only (Phase 5 backlog)
+
+No catalog APIs; same curated JSON/xlsx approach when operators need them:
 
 | Category | Strategy |
 | --- | --- |
 | Bandai Carddass | Community wiki / spreadsheet |
 | Meiji promotional cards | Collector spreadsheets |
-| Marvel trading cards (Fleer/Skybox/UD) | Sports-style curation |
-| UFC trading cards | Sports-style curation |
+| Marvel trading cards (Fleer/Skybox/UD) | Sports-style curation (not Dice Masters) |
+| UFC trading cards | Sports-style curation (seed has a Topps Chrome UFC sample) |
+| Skybox | Manufacturer tag on sports sets (seed has 1996-97 Premium) |
+| Bandai JP One Piece cardlist | Deferred; English via TCGCSV + apitcg |
 | Warhammer (TCGPlayer cats 39–45) | Miniatures/paints/books — **not cards**; skip |
 
 ## Language coverage reality
@@ -62,7 +90,7 @@ Parallels, inserts (`AUTO`), and serials (`09/15`) are first-class card columns.
 | "All languages" for Magic | Scryfall (~19 languages) |
 | "All languages" for Pokémon | TCGdex (16 languages in this repo) |
 | "All languages" for Yu-Gi-Oh | YGOPRODeck: five Western languages only |
-| Bandai games | English-first; Japanese via official sites |
+| Bandai games | English-first; Japanese via official sites (not automated here) |
 | Sports cards | Typically English labels; language axis is secondary |
 
 ## Licensing

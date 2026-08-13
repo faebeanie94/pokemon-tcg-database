@@ -33,11 +33,14 @@ pnpm install
 pnpm build:index
 pnpm dev                                         # http://localhost:3000
 pnpm lint / pnpm test / pnpm build
-pnpm refresh                                     # TCGdex fetch + build + match index
+pnpm refresh                                     # TCGdex only + build + match index
+pnpm refresh:games                                # also TCGCSV / YGO / Lorcast / GoAgain / apitcg
+pnpm fetch:mtg / pnpm fetch:onepiece             # large or game-specific dumps
 ```
 
 `PYTHONPATH=src` is required for every `pokedb` command; there is no installed
-package.
+package. **`pnpm refresh` stays Pokémon-first** on purpose — Scryfall and full
+TCGCSV walks are opt-in. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 
 ### Non-obvious notes
 
@@ -113,4 +116,8 @@ package.
   not republish catalogs without a license.
 - **`apis/tcgdex_export.py`'s `id` column feeds `pokedb verify`**, which compares
   `tcgdex_cards.xlsx` against a fresh download. Renaming it makes verify
-  silently report zero rows instead of failing.
+  silently report zero rows instead of failing. Additional exporters:
+  `apis/tcgcsv_export.py`, `apis/scryfall_export.py`,
+  `apis/ygoprodeck_export.py`.
+- **Bandai JP One Piece** scrape is deferred; English One Piece comes from
+  TCGCSV + apitcg (`pnpm fetch:onepiece`).

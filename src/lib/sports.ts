@@ -54,6 +54,7 @@ const MANUFACTURERS = [
   "BOWMAN",
   "DONRUSS",
   "FLEER",
+  "LEAF",
 ];
 
 /**

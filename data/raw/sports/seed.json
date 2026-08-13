@@ -1,5 +1,5 @@
 {
-  "description": "Curated sports grading examples. There is no public Topps/Panini/Upper Deck checklist API; operators add sets here or via sports_checklists.xlsx.",
+  "description": "Curated sports grading examples. There is no public Topps/Panini/Upper Deck checklist API; operators add sets here or via sports_checklists.xlsx. Grow this file as operators need releases.",
   "sets": [
     {
       "id": "2025-26-topps-manchester-united-team-set",
@@ -36,6 +36,33 @@
       "product_year": "2026",
       "release_date": "2026-01-15",
       "language": "en"
+    },
+    {
+      "id": "2024-panini-prizm-soccer",
+      "name": "2024 PANINI PRIZM SOCCER",
+      "manufacturer": "Panini",
+      "sport": "soccer",
+      "product_year": "2024",
+      "release_date": "2024-08-20",
+      "language": "en"
+    },
+    {
+      "id": "1996-97-skybox-premium-basketball",
+      "name": "1996-97 SKYBOX PREMIUM BASKETBALL",
+      "manufacturer": "Skybox",
+      "sport": "basketball",
+      "product_year": "1996-97",
+      "release_date": "1996-11-01",
+      "language": "en"
+    },
+    {
+      "id": "2024-topps-chrome-ufc",
+      "name": "2024 TOPPS CHROME UFC",
+      "manufacturer": "Topps",
+      "sport": "ufc",
+      "product_year": "2024",
+      "release_date": "2024-06-12",
+      "language": "en"
     }
   ],
   "cards": [
@@ -53,6 +80,23 @@
       "parallel": "HALO REF",
       "display_name": "SIR DAVID BECKHAM - HALO REF.",
       "name": "SIR DAVID BECKHAM - HALO REF."
+    },
+    {
+      "set_id": "2025-26-topps-manchester-united-team-set",
+      "number": "7",
+      "subject_name": "CRISTIANO RONALDO",
+      "display_name": "CRISTIANO RONALDO",
+      "name": "CRISTIANO RONALDO"
+    },
+    {
+      "set_id": "2025-26-topps-manchester-united-team-set",
+      "number": "7",
+      "subject_name": "CRISTIANO RONALDO",
+      "parallel": "GOLD PARALLEL",
+      "serial_number": "25",
+      "print_run": 50,
+      "display_name": "CRISTIANO RONALDO - GOLD PARALLEL - 25/50",
+      "name": "CRISTIANO RONALDO - GOLD PARALLEL - 25/50"
     },
     {
       "set_id": "2024-panini-flawless-wwe",
@@ -73,6 +117,17 @@
       "name": "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15"
     },
     {
+      "set_id": "2024-panini-flawless-wwe",
+      "number": "SSL-UA",
+      "subject_name": "THE UNDERTAKER",
+      "notations": "AUTO",
+      "parallel": "DIAMOND",
+      "serial_number": "03",
+      "print_run": 10,
+      "display_name": "THE UNDERTAKER – AUTO - DIAMOND – 03/10",
+      "name": "THE UNDERTAKER – AUTO - DIAMOND – 03/10"
+    },
+    {
       "set_id": "2025-topps-chrome-football",
       "number": "1",
       "subject_name": "PATRICK MAHOMES",
@@ -88,6 +143,25 @@
       "name": "PATRICK MAHOMES - REFRACTOR"
     },
     {
+      "set_id": "2025-topps-chrome-football",
+      "number": "12",
+      "subject_name": "CJ STROUD",
+      "notations": "RC",
+      "display_name": "CJ STROUD - RC",
+      "name": "CJ STROUD - RC"
+    },
+    {
+      "set_id": "2025-topps-chrome-football",
+      "number": "12",
+      "subject_name": "CJ STROUD",
+      "notations": "RC",
+      "parallel": "ORANGE REFRACTOR",
+      "serial_number": "18",
+      "print_run": 25,
+      "display_name": "CJ STROUD - RC - ORANGE REFRACTOR - 18/25",
+      "name": "CJ STROUD - RC - ORANGE REFRACTOR - 18/25"
+    },
+    {
       "set_id": "2026-upper-deck-aew-wrestling",
       "number": "25",
       "subject_name": "CM PUNK",
@@ -101,6 +175,85 @@
       "parallel": "BLUE PARALLEL",
       "display_name": "CM PUNK - BLUE PARALLEL",
       "name": "CM PUNK - BLUE PARALLEL"
+    },
+    {
+      "set_id": "2026-upper-deck-aew-wrestling",
+      "number": "1",
+      "subject_name": "MJF",
+      "notations": "AUTO",
+      "parallel": "GOLD",
+      "serial_number": "05",
+      "print_run": 25,
+      "display_name": "MJF - AUTO - GOLD - 05/25",
+      "name": "MJF - AUTO - GOLD - 05/25"
+    },
+    {
+      "set_id": "2024-panini-prizm-soccer",
+      "number": "1",
+      "subject_name": "LIONEL MESSI",
+      "display_name": "LIONEL MESSI",
+      "name": "LIONEL MESSI"
+    },
+    {
+      "set_id": "2024-panini-prizm-soccer",
+      "number": "1",
+      "subject_name": "LIONEL MESSI",
+      "parallel": "SILVER PRIZM",
+      "display_name": "LIONEL MESSI - SILVER PRIZM",
+      "name": "LIONEL MESSI - SILVER PRIZM"
+    },
+    {
+      "set_id": "2024-panini-prizm-soccer",
+      "number": "44",
+      "subject_name": "KYLIAN MBAPPE",
+      "parallel": "GREEN WAVE",
+      "serial_number": "12",
+      "print_run": 99,
+      "display_name": "KYLIAN MBAPPE - GREEN WAVE - 12/99",
+      "name": "KYLIAN MBAPPE - GREEN WAVE - 12/99"
+    },
+    {
+      "set_id": "1996-97-skybox-premium-basketball",
+      "number": "1",
+      "subject_name": "MICHAEL JORDAN",
+      "display_name": "MICHAEL JORDAN",
+      "name": "MICHAEL JORDAN"
+    },
+    {
+      "set_id": "1996-97-skybox-premium-basketball",
+      "number": "15",
+      "subject_name": "KOBE BRYANT",
+      "notations": "RC",
+      "display_name": "KOBE BRYANT - RC",
+      "name": "KOBE BRYANT - RC"
+    },
+    {
+      "set_id": "2024-topps-chrome-ufc",
+      "number": "1",
+      "subject_name": "CONOR MCGREGOR",
+      "display_name": "CONOR MCGREGOR",
+      "name": "CONOR MCGREGOR"
+    },
+    {
+      "set_id": "2024-topps-chrome-ufc",
+      "number": "1",
+      "subject_name": "CONOR MCGREGOR",
+      "parallel": "GOLD REFRACTOR",
+      "serial_number": "08",
+      "print_run": 50,
+      "display_name": "CONOR MCGREGOR - GOLD REFRACTOR - 08/50",
+      "name": "CONOR MCGREGOR - GOLD REFRACTOR - 08/50"
+    },
+    {
+      "set_id": "2024-topps-chrome-ufc",
+      "number": "88",
+      "subject_name": "ISLAM MAKHACHEV",
+      "notations": "AUTO",
+      "parallel": "BLUE WAVE",
+      "serial_number": "14",
+      "print_run": 75,
+      "display_name": "ISLAM MAKHACHEV - AUTO - BLUE WAVE - 14/75",
+      "name": "ISLAM MAKHACHEV - AUTO - BLUE WAVE - 14/75"
     }
   ]
 }

@@ -42,8 +42,15 @@ PYTHONPATH=src python3 -m pokedb build
 pnpm build:index
 ```
 
-`pnpm refresh` still fetches **TCGdex only** (Pokémon), then rebuilds. Extra
-sources are opt-in via `pokedb fetch --source …`.
+| Script | Behaviour |
+| --- | --- |
+| `pnpm refresh` | **TCGdex only** (Pokémon) — default, stays fast |
+| `pnpm refresh:games` | TCGdex + TCGCSV + YGOPRODeck + Lorcast + GoAgain + apitcg (no Scryfall) |
+| `pnpm fetch:mtg` | Scryfall bulk only (large); then `build` + `build:index` |
+| `pnpm fetch:onepiece` | TCGCSV + apitcg for One Piece |
+
+Extra sources are also opt-in via `python -m pokedb update --source …` or
+`pokedb fetch --source …`. See [DATA_SOURCES.md](DATA_SOURCES.md).
 
 ## Licensing
 
