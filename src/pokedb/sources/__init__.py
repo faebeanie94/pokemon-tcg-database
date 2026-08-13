@@ -10,7 +10,6 @@ from __future__ import annotations
 from ..records import SourceData
 from . import (
     apitcg,
-    bandai_onepiece,
     database_xlsx,
     goagain,
     lorcast,
@@ -38,7 +37,6 @@ LOADERS = (
     lorcast.load,
     goagain.load,
     apitcg.load,
-    bandai_onepiece.load,
 )
 
 

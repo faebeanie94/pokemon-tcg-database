@@ -14,7 +14,6 @@ FETCH_SOURCES = (
     "lorcast",
     "goagain",
     "apitcg",
-    "bandai_onepiece",
 )
 
 
@@ -141,8 +140,3 @@ def _run_fetch(
 
             print("Fetching apitcg data...")
             print(f"  {fetch_all(games)}")
-        elif source == "bandai_onepiece":
-            from .fetch_bandai_onepiece import fetch_all
-
-            print("Preparing Bandai One Piece raw paths...")
-            print(f"  {fetch_all()}")
