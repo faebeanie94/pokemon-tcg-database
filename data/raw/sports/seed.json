@@ -28,7 +28,7 @@
       "language": "en"
     },
     {
-      "id": "2026-upper-deck-aew",
+      "id": "2026-upper-deck-aew-wrestling",
       "name": "2026 UPPER DECK AEW WRESTLING",
       "manufacturer": "Upper Deck",
       "sport": "wrestling",
@@ -42,20 +42,16 @@
       "set_id": "2025-26-topps-manchester-united-team-set",
       "number": "38",
       "subject_name": "SIR DAVID BECKHAM",
-      "display_name": "SIR DAVID BECKHAM"
+      "display_name": "SIR DAVID BECKHAM",
+      "name": "SIR DAVID BECKHAM"
     },
     {
       "set_id": "2025-26-topps-manchester-united-team-set",
       "number": "38",
       "subject_name": "SIR DAVID BECKHAM",
       "parallel": "HALO REF",
-      "display_name": "SIR DAVID BECKHAM - HALO REF."
-    },
-    {
-      "set_id": "2024-panini-flawless-wwe",
-      "number": "SSL-SM",
-      "subject_name": "SHAWN MICHAELS",
-      "display_name": "SHAWN MICHAELS"
+      "display_name": "SIR DAVID BECKHAM - HALO REF.",
+      "name": "SIR DAVID BECKHAM - HALO REF."
     },
     {
       "set_id": "2024-panini-flawless-wwe",
@@ -65,36 +61,45 @@
       "parallel": "RUBY REF",
       "serial_number": "09",
       "print_run": 15,
-      "display_name": "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15"
+      "display_name": "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15",
+      "name": "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15"
+    },
+    {
+      "set_id": "2024-panini-flawless-wwe",
+      "number": "SSL-SM",
+      "subject_name": "SHAWN MICHAELS",
+      "display_name": "SHAWN MICHAELS",
+      "name": "SHAWN MICHAELS"
     },
     {
       "set_id": "2025-topps-chrome-football",
       "number": "1",
-      "subject_name": "CJ STROUD",
-      "display_name": "CJ STROUD"
+      "subject_name": "PATRICK MAHOMES",
+      "display_name": "PATRICK MAHOMES",
+      "name": "PATRICK MAHOMES"
     },
     {
       "set_id": "2025-topps-chrome-football",
       "number": "1",
-      "subject_name": "CJ STROUD",
+      "subject_name": "PATRICK MAHOMES",
       "parallel": "REFRACTOR",
-      "display_name": "CJ STROUD - REFRACTOR"
+      "display_name": "PATRICK MAHOMES - REFRACTOR",
+      "name": "PATRICK MAHOMES - REFRACTOR"
     },
     {
-      "set_id": "2026-upper-deck-aew",
-      "number": "45",
+      "set_id": "2026-upper-deck-aew-wrestling",
+      "number": "25",
       "subject_name": "CM PUNK",
-      "display_name": "CM PUNK"
+      "display_name": "CM PUNK",
+      "name": "CM PUNK"
     },
     {
-      "set_id": "2026-upper-deck-aew",
-      "number": "45",
+      "set_id": "2026-upper-deck-aew-wrestling",
+      "number": "25",
       "subject_name": "CM PUNK",
-      "notations": "AUTO",
-      "parallel": "GOLD",
-      "serial_number": "10",
-      "print_run": 25,
-      "display_name": "CM PUNK - AUTO - GOLD - 10/25"
+      "parallel": "BLUE PARALLEL",
+      "display_name": "CM PUNK - BLUE PARALLEL",
+      "name": "CM PUNK - BLUE PARALLEL"
     }
   ]
 }

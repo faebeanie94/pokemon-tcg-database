@@ -8,25 +8,15 @@ import type { MatchResponse } from "@/lib/match";
  * Operator console for the grading workflow, in two modes.
  *
  * Identify takes what is printed on a card and ranks the catalog rows it could
- * be, through the same /api/match endpoint the grading program calls. Browse
- * pages through the catalog for the times a card has to be found by working
- * through a set instead.
- *
- * Sports mode uses three structured fields (set name, card name + parallel,
- * number) instead of a single free-text query.
+ * be, through the same /api/match endpoint the grading program calls, so an
+ * operator sees exactly what the program gets. Browse pages through the catalog
+ * for the times a card has to be found by working through a set instead.
  */
 
 type Mode = "identify" | "browse";
 
 interface LanguageOption {
   language: string;
-  card_count: number;
-}
-
-interface GameOption {
-  game: string;
-  name: string;
-  kind: string;
   card_count: number;
 }
 
@@ -53,45 +43,24 @@ const LANGUAGE_NAMES: Record<string, string> = {
   th: "Thai",
 };
 
-const TCG_EXAMPLES = ["Charizard 4/102", "BS 4", "base1-4", "SV1a 001", "リザードン"];
-const SPORTS_EXAMPLES = [
-  {
-    label: "Beckham Halo Ref",
-    set: "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
-    name: "SIR DAVID BECKHAM - HALO REF.",
-    number: "38",
-  },
-  {
-    label: "Michaels Ruby /15",
-    set: "2024 PANINI FLAWLESS WWE",
-    name: "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15",
-    number: "SSL-SM",
-  },
-];
+const EXAMPLES = ["Charizard 4/102", "BS 4", "base1-4", "SV1a 001", "リザードン"];
 
 const PAGE_SIZE = 25;
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>("identify");
   const [query, setQuery] = useState("");
-  const [game, setGame] = useState("");
   const [language, setLanguage] = useState("");
   const [setFilter, setSetFilter] = useState("");
   const [numberFilter, setNumberFilter] = useState("");
-  const [sportsSet, setSportsSet] = useState("");
-  const [sportsName, setSportsName] = useState("");
-  const [sportsNumber, setSportsNumber] = useState("");
   const [offset, setOffset] = useState(0);
 
   const [languages, setLanguages] = useState<LanguageOption[]>([]);
-  const [games, setGames] = useState<GameOption[]>([]);
   const [totalCards, setTotalCards] = useState<number | null>(null);
   const [match, setMatch] = useState<MatchResponse | null>(null);
   const [search, setSearch] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const sportsMode = game === "sports";
 
   useEffect(() => {
     fetch("/api/languages")
@@ -99,48 +68,27 @@ export default function Home() {
       .then((data) => {
         setLanguages(data.languages ?? []);
         setTotalCards(data.totalCards ?? 0);
-        setGames(data.games ?? []);
       })
       .catch(() => setError("Could not load catalog languages."));
   }, []);
 
+  // Any change to what is being searched for starts again from the first page.
   useEffect(() => {
     setOffset(0);
-  }, [mode, query, game, language, setFilter, numberFilter, sportsSet, sportsName, sportsNumber]);
+  }, [mode, query, language, setFilter, numberFilter]);
 
   const runMatch = useCallback(async () => {
-    if (sportsMode) {
-      if (!sportsSet.trim() && !sportsName.trim() && !sportsNumber.trim()) {
-        setMatch(null);
-        return;
-      }
-    } else if (!query.trim()) {
+    if (!query.trim()) {
       setMatch(null);
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const body = sportsMode
-        ? {
-            game: "sports",
-            sports: true,
-            set: sportsSet || undefined,
-            name: sportsName || undefined,
-            number: sportsNumber || undefined,
-            language: language || undefined,
-            limit: 25,
-          }
-        : {
-            query,
-            game: game || undefined,
-            language: language || undefined,
-            limit: 25,
-          };
       const res = await fetch("/api/match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ query, language: language || undefined, limit: 25 }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -154,7 +102,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [query, language, game, sportsMode, sportsSet, sportsName, sportsNumber]);
+  }, [query, language]);
 
   const runSearch = useCallback(async () => {
     setLoading(true);
@@ -164,7 +112,6 @@ export default function Home() {
       offset: String(offset),
     });
     if (query.trim()) params.set("q", query.trim());
-    if (game) params.set("game", game);
     if (language) params.set("language", language);
     if (setFilter.trim()) params.set("set", setFilter.trim());
     if (numberFilter.trim()) params.set("number", numberFilter.trim());
@@ -183,7 +130,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [query, game, language, setFilter, numberFilter, offset]);
+  }, [query, language, setFilter, numberFilter, offset]);
 
   useEffect(() => {
     if (mode !== "identify") return;
@@ -204,7 +151,8 @@ export default function Home() {
           Card lookup
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Identify a card from what is printed on it.
+          Identify a card from what is printed on it: name, collector number,
+          set code, or a source card ID.
           {totalCards !== null && (
             <> {totalCards.toLocaleString()} printings in the catalog.</>
           )}
@@ -220,25 +168,15 @@ export default function Home() {
         </ModeButton>
       </div>
 
-      <section className="mb-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
-        <div>
-          <label htmlFor="game" className="mb-1 block text-sm font-medium text-slate-600">
-            Game
-          </label>
-          <select
-            id="game"
-            value={game}
-            onChange={(e) => setGame(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue"
-          >
-            <option value="">Any game</option>
-            {games.map((g) => (
-              <option key={g.game} value={g.game}>
-                {g.name} ({g.card_count.toLocaleString()})
-              </option>
-            ))}
-          </select>
-        </div>
+      <section className="mb-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-[1fr_240px]">
+        <Field
+          id="lookup"
+          label={mode === "identify" ? "Card" : "Name or set"}
+          value={query}
+          onChange={setQuery}
+          placeholder={mode === "identify" ? "Charizard 4/102" : "Charizard"}
+          autoFocus
+        />
         <div>
           <label
             htmlFor="language"
@@ -262,92 +200,39 @@ export default function Home() {
           </select>
         </div>
 
-        {mode === "identify" && sportsMode ? (
+        {mode === "browse" && (
           <>
             <Field
-              id="sports-set"
-              label="Set name"
-              value={sportsSet}
-              onChange={setSportsSet}
-              placeholder="2025-26 TOPPS MANCHESTER UNITED TEAM SET"
-              autoFocus
+              id="set"
+              label="Set (code, ID or name)"
+              value={setFilter}
+              onChange={setSetFilter}
+              placeholder="BS"
             />
             <Field
-              id="sports-name"
-              label="Card name + parallel"
-              value={sportsName}
-              onChange={setSportsName}
-              placeholder="SIR DAVID BECKHAM - HALO REF."
+              id="number"
+              label="Collector number"
+              value={numberFilter}
+              onChange={setNumberFilter}
+              placeholder="4"
             />
-            <Field
-              id="sports-number"
-              label="Number"
-              value={sportsNumber}
-              onChange={setSportsNumber}
-              placeholder="38 or SSL-SM"
-            />
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:col-span-2">
-              <span>Try:</span>
-              {SPORTS_EXAMPLES.map((example) => (
-                <button
-                  key={example.label}
-                  type="button"
-                  onClick={() => {
-                    setSportsSet(example.set);
-                    setSportsName(example.name);
-                    setSportsNumber(example.number);
-                  }}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
-                >
-                  {example.label}
-                </button>
-              ))}
-            </div>
           </>
-        ) : (
-          <>
-            <Field
-              id="lookup"
-              label={mode === "identify" ? "Card" : "Name or set"}
-              value={query}
-              onChange={setQuery}
-              placeholder={mode === "identify" ? "Charizard 4/102" : "Charizard"}
-              autoFocus
-            />
-            {mode === "browse" && (
-              <>
-                <Field
-                  id="set"
-                  label="Set (code, ID or name)"
-                  value={setFilter}
-                  onChange={setSetFilter}
-                  placeholder="BS"
-                />
-                <Field
-                  id="number"
-                  label="Collector number"
-                  value={numberFilter}
-                  onChange={setNumberFilter}
-                  placeholder="4"
-                />
-              </>
-            )}
-            {mode === "identify" && !sportsMode && (
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:col-span-2">
-                <span>Try:</span>
-                {TCG_EXAMPLES.map((example) => (
-                  <button
-                    key={example}
-                    type="button"
-                    onClick={() => setQuery(example)}
-                    className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
-                  >
-                    {example}
-                  </button>
-                ))}
-              </div>
-            )}
-          </>
+        )}
+
+        {mode === "identify" && (
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:col-span-2">
+            <span>Try:</span>
+            {EXAMPLES.map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => setQuery(example)}
+                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
+              >
+                {example}
+              </button>
+            ))}
+          </div>
         )}
       </section>
 
@@ -568,15 +453,9 @@ function Interpretation({
 }) {
   const { interpretation: read } = result;
   const parts: string[] = [];
-  if (read.game) parts.push(`game ${read.game}`);
   if (read.cardId) parts.push(`card ID ${read.cardId}`);
-  if (read.subject) parts.push(`subject "${read.subject}"`);
-  if (read.parallel) parts.push(`parallel "${read.parallel}"`);
   if (read.name) parts.push(`name "${read.name}"`);
   if (read.number) parts.push(`number ${read.number}`);
-  if (read.serial_number && read.print_run) {
-    parts.push(`serial ${read.serial_number}/${read.print_run}`);
-  }
   if (read.printedTotal) parts.push(`printed total ${read.printedTotal}`);
   for (const set of read.sets) {
     parts.push(
@@ -608,17 +487,11 @@ function Interpretation({
 }
 
 function CardNames({ card }: { card: CatalogCard }) {
-  const title = card.display_name || card.name;
   return (
     <div>
-      <span className="font-bold text-slate-800">{title}</span>
-      {card.english_name && card.english_name !== title && (
+      <span className="font-bold text-slate-800">{card.name}</span>
+      {card.english_name && card.english_name !== card.name && (
         <span className="ml-2 text-sm text-slate-500">{card.english_name}</span>
-      )}
-      {card.parallel && (
-        <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-          {card.parallel}
-        </span>
       )}
     </div>
   );
@@ -627,29 +500,15 @@ function CardNames({ card }: { card: CatalogCard }) {
 function CardLocation({ card }: { card: CatalogCard }) {
   return (
     <div className="mt-1 text-sm text-slate-600">
-      <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs uppercase text-slate-500">
-        {card.game}
-      </span>
       <span className="font-medium">{card.set_name}</span>
       {card.set_code && (
         <span className="text-slate-400"> ({card.set_code})</span>
-      )}
-      {card.manufacturer && (
-        <span className="text-slate-400"> · {card.manufacturer}</span>
       )}
       <span className="text-slate-400"> · </span>
       <span>
         #{card.card_number}
         {card.printed_total ? `/${card.printed_total}` : ""}
       </span>
-      {card.serial_number && card.print_run && (
-        <>
-          <span className="text-slate-400"> · </span>
-          <span>
-            {card.serial_number}/{card.print_run}
-          </span>
-        </>
-      )}
       <span className="text-slate-400"> · </span>
       <span className="uppercase">{card.language}</span>
     </div>

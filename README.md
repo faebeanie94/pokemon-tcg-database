@@ -1,45 +1,30 @@
 # pokemon-tcg-database
 
-Multi-game trading and sports card catalog for a grading workflow: Pokémon (all
-languages), other TCGs (Magic, Yu-Gi-Oh, One Piece, Lorcana, …), and curated
-sports / entertainment checklists (Topps, Panini, Upper Deck, …).
+Every official Pokémon Trading Card Game set and card, in every language it has
+been printed in, plus the tools to browse and serve it.
 
 | Part | What it is | Start here |
 | --- | --- | --- |
-| **Card data** | The Python pipeline that merges sources into one SQLite database, an Excel workbook, and a JSON API. | [Card data](#card-data) |
+| **Card data** | The Python pipeline that merges the public sources into the one card database, an Excel workbook, and a JSON API. | [Card data](#card-data) |
 | **Web app** | A Next.js card matching service and operator console, reading that same database. | [Web app](#web-app) |
-| **Export scripts** | Standalone scripts in `apis/` for TCGdex, TCGCSV, Scryfall, YGOPRODeck, … | [Export scripts](#export-scripts) |
-| **Data sources** | Which games have APIs vs need curation | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) |
-| **Sports grading** | Three-field format and checklist curation | [docs/SPORTS.md](docs/SPORTS.md) |
-| **UID migration** | `card_uid` now includes `game` (and optional parallel) | [docs/MIGRATION.md](docs/MIGRATION.md) |
+| **Export scripts** | The standalone scripts (`apis/`) that produced the spreadsheets in this repo. | [Export scripts](#export-scripts) |
 
 > **One database, two services.** `python -m pokedb build` produces
 > `build/pokemon_tcg.sqlite`, and that file is the single source of truth. Both
 > the FastAPI service and the Next.js app read it — there is no second copy of
 > the card data. See [How the pieces fit](#how-the-pieces-fit).
 
-**Sports grading fields:** set name · card name + parallel · number  
-Example: `2025-26 TOPPS MANCHESTER UNITED TEAM SET` / `SIR DAVID BECKHAM - HALO REF.` / `38`
-
-**Fetch extra games:**
-
-```bash
-PYTHONPATH=src python3 -m pokedb fetch --source tcgcsv --game onepiece --game lorcana
-PYTHONPATH=src python3 -m pokedb fetch --source scryfall
-PYTHONPATH=src python3 -m pokedb build && pnpm build:index
-```
-
 ---
 
 # Card data
 
-Pokémon coverage remains the largest automated slice (~145k cards across 16
-languages). Additional games load when their raw dumps are present under
-`data/raw/`. Sports seed data ships in `data/raw/sports/seed.json`.
+2,206 sets and 144,851 cards across 16 languages, as **one Excel workbook** and
+a **JSON API**. Find a card from the set name, the number printed on it, the
+card name and the year it was released.
 
 | | |
 |---|---|
-| Workbook | `exports/Card_Database.xlsx` (regenerated on export) |
+| Workbook | [`exports/Pokemon_TCG_Card_Database.xlsx`](exports/Pokemon_TCG_Card_Database.xlsx) |
 | Refresh | `python -m pokedb update`, or the API's own timer |
 
 ## The workbook
