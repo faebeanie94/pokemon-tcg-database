@@ -1,0 +1,1 @@
+scryfall_cards.xlsx filter=lfs diff=lfs merge=lfs -text
