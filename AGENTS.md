@@ -6,8 +6,9 @@ Two services over **one** SQLite database, for a **multi-game** card grading
 workflow (Pokémon TCG, other TCGs, and sports / entertainment cards):
 
 - **`src/pokedb`** — Python. Builds the card database from spreadsheets, TCGdex,
-  TCGCSV, Scryfall, YGOPRODeck, Lorcast, GoAgain, apitcg, and curated sports
-  seeds. This is the only thing that writes the `sets` and `cards` tables.
+  TCGCSV, Scryfall, YGOPRODeck, Lorcast, GoAgain, apitcg, Bandai JP / language
+  dumps, and curated sports seeds. This is the only thing that writes the
+  `sets` and `cards` tables.
 - **`src/app`, `src/lib`** — **Next.js 15 (App Router) + TypeScript**, with
   Tailwind CSS and `better-sqlite3`. Card matching API and operator console. It
   reads the same database and never writes card data.
@@ -24,9 +25,11 @@ vs need curated spreadsheets, [docs/MIGRATION.md](docs/MIGRATION.md) for
 ```bash
 pip install -r requirements-dev.txt
 PYTHONPATH=src python3 -m pokedb update          # TCGdex + build (default)
-PYTHONPATH=src python3 -m pokedb fetch-tcgcsv --game onepiece
+PYTHONPATH=src python3 -m pokedb fetch --source tcgcsv --game onepiece
 PYTHONPATH=src python3 -m pokedb fetch-scryfall
 PYTHONPATH=src python3 -m pokedb fetch-sports    # TCDB / Beckett staging help
+PYTHONPATH=src python3 -m pokedb fetch-bandai-onepiece
+PYTHONPATH=src python3 -m pokedb fetch-language-dumps
 PYTHONPATH=src python3 -m pokedb build --game pokemon --game sports
 PYTHONPATH=src pytest -q
 
@@ -96,9 +99,12 @@ long-tail backlog, are in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 - **Accent folding is confined to Latin runs on purpose.** Unicode classes the
   Japanese dakuten and long-vowel mark as diacritics, so folding globally turns
   リザードン into リサトン and makes different Japanese names compare equal.
-  `src/lib/normalize.test.ts` guards this. `normalize_name` in
-  `src/pokedb/normalize.py` still has this bug, but it only folds *set* names
-  there, where the impact is narrower.
+  `src/lib/normalize.test.ts` and `tests/test_normalize.py` guard this for both
+  the TypeScript matcher and `normalize_name` in `src/pokedb/normalize.py`.
+- **Bandai JP One Piece** has a dump adapter (`pokedb fetch-bandai-onepiece` →
+  `data/raw/bandai_onepiece/`); English One Piece still comes from TCGCSV +
+  apitcg (`pnpm fetch:onepiece`). Weiss JP / YGO OCG / Lorcana i18n use
+  `pokedb fetch-language-dumps`.
 - **Search depends on FTS5's trigram tokenizer**, which is what makes partial CJK
   names findable. Queries under three characters cannot use it and fall back to a
   `LIKE` scan — see `isTrigramSearchable`.
@@ -133,5 +139,3 @@ long-tail backlog, are in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
   silently report zero rows instead of failing. Additional exporters:
   `apis/tcgcsv_export.py`, `apis/scryfall_export.py`,
   `apis/ygoprodeck_export.py`.
-- **Bandai JP One Piece** scrape is deferred; English One Piece comes from
-  TCGCSV + apitcg (`pnpm fetch:onepiece`).

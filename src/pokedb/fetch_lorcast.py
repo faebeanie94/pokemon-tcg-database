@@ -8,8 +8,14 @@ import urllib.request
 from .config import LORCAST_API, LORCAST_RAW
 
 
+_UA = "Mozilla/5.0 (compatible; pokedb/1.0; +https://github.com/)"
+
+
 def _get(url: str):
-    with urllib.request.urlopen(url, timeout=60) as response:
+    request = urllib.request.Request(
+        url, headers={"User-Agent": _UA, "Accept": "application/json"}
+    )
+    with urllib.request.urlopen(request, timeout=60) as response:
         return json.loads(response.read().decode("utf-8"))
 
 

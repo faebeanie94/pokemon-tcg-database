@@ -52,14 +52,19 @@ def test_seed_covers_manufacturers_and_sports():
     assert data is not None
     manufacturers = {s.manufacturer for s in data.sets}
     sports = {s.sport for s in data.sets}
-    assert {"Topps", "Panini", "Upper Deck", "Skybox"} <= manufacturers
-    assert {"soccer", "football", "wrestling", "basketball", "ufc"} <= sports
+    assert {"Topps", "Panini", "Upper Deck", "Skybox", "Bandai", "Meiji", "Impel"} <= manufacturers
+    assert {"soccer", "football", "wrestling", "basketball", "ufc", "carddass", "promo", "marvel"} <= sports
 
     rows = _merged_seed_rows()
-    assert len(rows) >= 20
+    assert len(rows) >= 35
     by_uid = {row["card_uid"]: row for row in rows}
     assert any("messi" in (row["subject_name"] or "").lower() for row in rows)
     assert any("jordan" in (row["subject_name"] or "").lower() for row in rows)
     assert any("mcgregor" in (row["subject_name"] or "").lower() for row in rows)
+    assert any("bellingham" in (row["subject_name"] or "").lower() for row in rows)
     # Skybox set is present as a manufacturer tag example.
     assert any(uid.startswith("sports:en:199697skyboxpremiumbasketball") for uid in by_uid)
+    # Phase 5 long-tail samples share the sports ingest path.
+    assert any("carddass" in (s.sport or "") for s in data.sets)
+    assert any(uid.startswith("sports:ja:1989bandaicarddassdbzpart1") for uid in by_uid)
+    assert any(uid.startswith("sports:en:1992marveluniverseseries1") for uid in by_uid)

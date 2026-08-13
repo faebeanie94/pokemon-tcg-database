@@ -47,43 +47,72 @@ def load() -> SourceData | None:
         if isinstance(cards, dict):
             cards = cards.get("data") or cards.get("results") or []
         for card in cards:
-            set_id = clean_text(
-                card.get("set")
-                or card.get("set_id")
-                or (card.get("set_info") or {}).get("id")
-            )
-            number = clean_text(str(card.get("number") or card.get("collector_number") or ""))
             name = clean_text(card.get("name"))
-            if not set_id or not number or not name:
+            if not name:
                 continue
-            sid = set_id.lower()
-            if sid not in seen_sets:
-                seen_sets.add(sid)
-                data.sets.append(
-                    SetRecord(
+            printings = card.get("printings") or []
+            if not printings:
+                # Older dump shape: flat set/number fields.
+                printings = [card]
+            seen_numbers: set[tuple[str, str]] = set()
+            for printing in printings:
+                set_id = clean_text(
+                    printing.get("set_id")
+                    or printing.get("set")
+                    or card.get("set")
+                    or card.get("set_id")
+                    or (card.get("set_info") or {}).get("id")
+                )
+                number = clean_text(
+                    str(
+                        printing.get("id")
+                        or printing.get("number")
+                        or printing.get("collector_number")
+                        or card.get("number")
+                        or card.get("collector_number")
+                        or ""
+                    )
+                )
+                if not set_id or not number:
+                    continue
+                sid = set_id.lower()
+                key = (sid, number.lower())
+                if key in seen_numbers:
+                    continue
+                seen_numbers.add(key)
+                if sid not in seen_sets:
+                    seen_sets.add(sid)
+                    data.sets.append(
+                        SetRecord(
+                            source=SOURCE,
+                            game=GAME,
+                            language="en",
+                            source_set_id=sid,
+                            name=set_id,
+                            name_en=set_id,
+                            abbreviation=set_id.upper(),
+                        )
+                    )
+                data.cards.append(
+                    CardRecord(
                         source=SOURCE,
                         game=GAME,
                         language="en",
                         source_set_id=sid,
-                        name=set_id,
-                        name_en=set_id,
-                        abbreviation=set_id.upper(),
+                        number=number,
+                        name=name,
+                        name_en=name,
+                        rarity=clean_text(printing.get("rarity") or card.get("rarity")),
+                        card_type=clean_text(
+                            (card.get("types") or [None])[0]
+                            if isinstance(card.get("types"), list)
+                            else card.get("type")
+                        ),
+                        card_id=clean_text(printing.get("id") or card.get("unique_id")),
+                        image_url=clean_text(
+                            printing.get("image_url") or card.get("image_url") or card.get("image")
+                        ),
                     )
                 )
-            data.cards.append(
-                CardRecord(
-                    source=SOURCE,
-                    game=GAME,
-                    language="en",
-                    source_set_id=sid,
-                    number=number,
-                    name=name,
-                    name_en=name,
-                    rarity=clean_text(card.get("rarity")),
-                    card_type=clean_text(card.get("type")),
-                    card_id=clean_text(card.get("id")),
-                    image_url=clean_text(card.get("image_url") or card.get("image")),
-                )
-            )
 
     return data if data.sets or data.cards else None

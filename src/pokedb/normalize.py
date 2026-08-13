@@ -90,13 +90,24 @@ def normalize_code(value: object) -> str | None:
 
 
 def normalize_name(value: object) -> str | None:
-    """Fold a set name for comparison: accents, case and punctuation removed."""
+    """Fold a set name for comparison: Latin accents, case and punctuation removed.
+
+    Accent folding is confined to Latin runs. Unicode also classes Japanese
+    dakuten / handakuten and the long-vowel mark as diacritics; stripping them
+    globally turns リザードン into リサトン and collapses different names.
+    """
     text = clean_text(value)
     if not text:
         return None
-    decomposed = unicodedata.normalize("NFKD", text)
-    stripped = "".join(char for char in decomposed if not unicodedata.combining(char))
-    folded = re.sub(r"[^0-9a-z\u3000-\u9fff\uac00-\ud7af]+", "", stripped.lower())
+
+    def _fold_latin_run(match: re.Match[str]) -> str:
+        run = match.group(0)
+        decomposed = unicodedata.normalize("NFKD", run)
+        return "".join(char for char in decomposed if not unicodedata.combining(char))
+
+    # Latin letters plus any combining marks attached to them.
+    folded_latin = re.sub(r"[A-Za-z\u00C0-\u024F\u1E00-\u1EFF\u0300-\u036F]+", _fold_latin_run, text)
+    folded = re.sub(r"[^0-9a-z\u3000-\u9fff\uac00-\ud7af]+", "", folded_latin.lower())
     return folded or None
 
 

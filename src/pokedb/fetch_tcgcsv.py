@@ -10,8 +10,14 @@ from typing import Iterable
 from .config import TCGCSV_API, TCGCSV_CATEGORIES, TCGCSV_RAW
 
 
+_UA = "Mozilla/5.0 (compatible; pokedb/1.0; +https://github.com/)"
+
+
 def _get_json(url: str) -> dict | list:
-    with urllib.request.urlopen(url, timeout=120) as response:
+    request = urllib.request.Request(
+        url, headers={"User-Agent": _UA, "Accept": "application/json"}
+    )
+    with urllib.request.urlopen(request, timeout=120) as response:
         return json.loads(response.read().decode("utf-8"))
 
 

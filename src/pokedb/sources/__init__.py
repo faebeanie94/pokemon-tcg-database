@@ -13,9 +13,11 @@ from __future__ import annotations
 from ..records import SourceData
 from . import (
     apitcg,
+    bandai_onepiece,
     beckett,
     database_xlsx,
     goagain,
+    language_dumps,
     lorcast,
     pikaqian_xlsx,
     scryfall,
@@ -43,9 +45,13 @@ LOADERS = (
     # both dumps are present (build still applies SOURCE_ORDER_BY_GAME).
     scryfall.load,
     ygoprodeck.load,
+    language_dumps.load_ygo_ocg,
     lorcast.load,
+    language_dumps.load_lorcana_i18n,
     goagain.load,
     apitcg.load,
+    bandai_onepiece.load,
+    language_dumps.load_weiss_jp,
     tcgcsv.load,
 )
 
@@ -61,12 +67,12 @@ SOURCE_ORDER_BY_GAME: dict[str, list[str]] = {
         "beckett",
     ],
     "mtg": ["scryfall", "tcgcsv"],
-    "yugioh": ["ygoprodeck", "tcgcsv"],
-    "lorcana": ["lorcast", "tcgcsv"],
+    "yugioh": ["ygoprodeck", "ygo_ocg", "tcgcsv"],
+    "lorcana": ["lorcast", "lorcana_i18n", "tcgcsv"],
     "fleshblood": ["goagain", "tcgcsv"],
-    "onepiece": ["apitcg", "tcgcsv"],
+    "onepiece": ["bandai_onepiece", "apitcg", "tcgcsv"],
     "dbsfw": ["apitcg", "tcgcsv"],
-    "weiss": ["tcgcsv"],
+    "weiss": ["weiss_jp", "tcgcsv"],
     "dbz": ["tcgcsv"],
     "dbs": ["tcgcsv"],
     "metazoo": ["tcgcsv"],

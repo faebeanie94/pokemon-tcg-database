@@ -42,7 +42,12 @@ _LANG_MAP = {
 
 
 def _open_cards() -> Path | None:
-    for name in ("all_cards.jsonl", "all_cards.jsonl.gz", "default_cards.jsonl"):
+    for name in (
+        "all_cards.jsonl",
+        "all_cards.jsonl.gz",
+        "default_cards.jsonl",
+        "default_cards.jsonl.gz",
+    ):
         path = SCRYFALL_RAW / name
         if path.exists():
             return path

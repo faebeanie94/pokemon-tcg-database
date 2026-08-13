@@ -11,7 +11,7 @@ Which categories can be loaded automatically, and which need curation.
 | `pnpm refresh` | **TCGdex only** (Pokémon), then build + match index | Daily Pokémon refresh — stays fast |
 | `pnpm refresh:games` | TCGdex + TCGCSV + YGOPRODeck + Lorcast + GoAgain + apitcg | Multi-game without Scryfall’s huge dump |
 | `pnpm fetch:mtg` | Scryfall bulk only | Magic; run `pokedb build && pnpm build:index` after |
-| `pnpm fetch:onepiece` | TCGCSV + apitcg for One Piece | English One Piece; no Bandai JP scrape |
+| `pnpm fetch:onepiece` | TCGCSV + apitcg for One Piece | English One Piece; JP via Bandai dump staging |
 
 Scryfall `all_cards` is hundreds of MB and is **opt-in**, never part of
 `pnpm refresh` / `refresh:games`. Prefer fetching only the games you grade:
@@ -30,9 +30,9 @@ pnpm build:index
 | Category | Source | Notes |
 | --- | --- | --- |
 | Pokémon (all languages) | TCGdex + PikaQian + database.xlsx | Default `pnpm refresh` path |
-| Magic: The Gathering (all languages) | Scryfall bulk `All Cards` | Opt-in via `pnpm fetch:mtg` |
+| Magic: The Gathering (all languages) | Scryfall bulk | Opt-in via `pnpm fetch:mtg` (defaults to `default_cards`; use `all_cards` for every language) |
 | Yu-Gi-Oh! | TCGCSV (cat 2) + YGOPRODeck | YGOPRODeck: en/fr/de/it/pt only; no Japanese OCG text |
-| One Piece | TCGCSV (cat 68) + apitcg | English-first; Bandai JP cardlist scrape is **deferred** |
+| One Piece | TCGCSV (cat 68) + apitcg + Bandai JP dumps | English-first; JP via `data/raw/bandai_onepiece/` |
 | Lorcana | TCGCSV (cat 71) + Lorcast | English-centric |
 | Flesh and Blood | TCGCSV (cat 62) + GoAgain / fab-cube | |
 | Weiss Schwarz | TCGCSV (cat 20) | English releases only on TCGplayer |
@@ -61,7 +61,7 @@ Dedicated fetchers beyond English-only TCGCSV. Loaders live under
 | --- | --- | --- | --- |
 | Magic | Scryfall (`scryfall.py`) | ~19 (incl. `zhs`/`zht`/`ja`) | `pnpm fetch:mtg` |
 | Yu-Gi-Oh! | YGOPRODeck (`ygoprodeck.py`) | en/fr/de/it/pt only | `refresh:games` |
-| One Piece | apitcg (`apitcg.py`, alias `apitcg_onepiece.py`) + TCGCSV | English; **JP deferred** | `pnpm fetch:onepiece` |
+| One Piece | apitcg (`apitcg.py`, alias `apitcg_onepiece.py`) + TCGCSV + Bandai JP dumps | English via API (needs `APITCG_API_KEY`); JP via `data/raw/bandai_onepiece/` | `pnpm fetch:onepiece` |
 | Lorcana | Lorcast (`lorcast.py`) + TCGCSV | primarily en | `refresh:games` |
 | Flesh and Blood | GoAgain (`goagain.py`, alias `fab.py`) + TCGCSV | en | `refresh:games` |
 | DBS Fusion World | apitcg + TCGCSV | en | `refresh:games` |
@@ -74,13 +74,13 @@ beats TCGplayer English for Magic when both dumps are present.
 
 | Gap | Why | Follow-up |
 | --- | --- | --- |
-| Bandai JP One Piece cardlist | No automated scrape; EN via TCGCSV + apitcg | Official Bandai JP site adapter |
-| Weiss Schwarz Japanese | TCGplayer EN releases only | Bushiroad / JP marketplace scrape |
-| Yu-Gi-Oh! OCG Japanese | YGOPRODeck Western langs only | Konami DB / community OCG dump |
-| Lorcana non-English | Lorcast is EN-centric | Ravensburger regional dumps when available |
+| Bandai JP One Piece cardlist | No automated scrape; EN via TCGCSV + apitcg | Stage dumps: `pokedb fetch-bandai-onepiece` / `data/raw/bandai_onepiece/` |
+| Weiss Schwarz Japanese | TCGplayer EN releases only | `pokedb fetch-language-dumps --target weiss_jp` → `data/raw/weiss_jp/` |
+| Yu-Gi-Oh! OCG Japanese | YGOPRODeck Western langs only | `pokedb fetch-language-dumps --target ygo_ocg` → `data/raw/ygo_ocg/` |
+| Lorcana non-English | Lorcast is EN-centric | `pokedb fetch-language-dumps --target lorcana_i18n` → `data/raw/lorcana_i18n/` |
 
-Do not block the grading workflow on these scrapes — schedule as publisher-specific
-adapters.
+Do not block the grading workflow on live publisher scrapes — stage normalized
+JSON dumps (same pattern as TCDB / Beckett) and rebuild.
 
 ## Sports & manufacturer lines (no catalog API)
 
@@ -104,12 +104,12 @@ xlsx/JSON imports, or a future commercial partnership.
 
 | Category | Strategy | Notes |
 | --- | --- | --- |
-| Bandai Carddass (vintage DBZ, etc.) | Community wiki / curated spreadsheet | No public checklist API |
-| Meiji promotional cards | Collector spreadsheets | Promo-only; tiny catalogs |
+| Bandai Carddass (vintage DBZ, etc.) | Community wiki / curated spreadsheet | Seed sample: `1989 BANDAI CARDDASS…` in `seed.json` |
+| Meiji promotional cards | Collector spreadsheets | Seed sample: `1998 MEIJI POKEMON GET CARD` |
 | Skybox vintage | TCDB dumps (partial) + curated sports xlsx | Seed has 1996-97 Premium sample |
-| Marvel trading cards (Fleer / Skybox / UD) | Sports-style curation | **Not** Marvel Dice Masters (TCGCSV cat 18) |
+| Marvel trading cards (Fleer / Skybox / UD) | Sports-style curation | Seed sample: `1992 MARVEL UNIVERSE SERIES 1` (**not** Dice Masters) |
 | Warhammer beyond Champions TCG | Skip TCGplayer cats 39–45 | Miniatures / paints / books — not cards |
-| UFC / multi-sport Topps–Panini gaps | Beckett + curated spine | Expand `sports_cards.xlsx` as needed |
+| UFC / multi-sport Topps–Panini gaps | Beckett + curated spine | Expand `sports_cards.xlsx` / seed as needed |
 
 ### Commercial vendor evaluation (optional)
 

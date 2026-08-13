@@ -9,6 +9,15 @@ from .config import YGOPRODECK_API, YGOPRODECK_RAW
 
 LANGUAGES = ("en", "fr", "de", "it", "pt")
 
+# YGOPRODeck returns 403 without a browser-like User-Agent.
+_UA = "Mozilla/5.0 (compatible; pokedb/1.0; +https://github.com/)"
+
+
+def _get_json(url: str):
+    request = urllib.request.Request(url, headers={"User-Agent": _UA, "Accept": "application/json"})
+    with urllib.request.urlopen(request, timeout=180) as response:
+        return json.loads(response.read().decode("utf-8"))
+
 
 def fetch_all(languages: list[str] | None = None) -> dict[str, int]:
     YGOPRODECK_RAW.mkdir(parents=True, exist_ok=True)
@@ -19,8 +28,7 @@ def fetch_all(languages: list[str] | None = None) -> dict[str, int]:
         if language != "en":
             url += f"?language={language}"
         print(f"  YGOPRODeck {language}...")
-        with urllib.request.urlopen(url, timeout=180) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        payload = _get_json(url)
         (YGOPRODECK_RAW / f"{language}.json").write_text(
             json.dumps(payload, ensure_ascii=False), encoding="utf-8"
         )

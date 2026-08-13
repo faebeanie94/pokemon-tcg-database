@@ -20,8 +20,11 @@ sports / entertainment checklists (Topps, Panini, Upper Deck, …).
 
 # Card data
 
-2,206 sets and 144,851 cards across 16 languages, as **one Excel workbook** and
-a **JSON API**. Find a card from the set name, the number printed on it, the
+Pokémon remains the densest catalog (~2,200 sets / ~145k cards across 16
+languages after a TCGdex refresh). Other TCGs and sports checklists land in the
+**same** SQLite file once you fetch their dumps — see
+[docs/DATA_SOURCES.md](docs/DATA_SOURCES.md). Export is **one Excel workbook**
+and a **JSON API**. Find a card from the set name, the number printed on it, the
 card name and the year it was released.
 
 | | |

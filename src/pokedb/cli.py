@@ -14,6 +14,8 @@ FETCH_SOURCES = (
     "lorcast",
     "goagain",
     "apitcg",
+    "bandai_onepiece",
+    "language_dumps",
     "tcdb",
     "beckett",
 )
@@ -63,6 +65,20 @@ def main(argv: list[str] | None = None) -> int:
         "fetch-sports",
         help="print how to stage TCDB / Beckett sports checklists",
     )
+    subparsers.add_parser(
+        "fetch-bandai-onepiece",
+        help="stage Bandai JP One Piece dumps (or print staging help)",
+    )
+    fetch_lang = subparsers.add_parser(
+        "fetch-language-dumps",
+        help="stage Weiss JP / YGO OCG / Lorcana i18n dumps (or print help)",
+    )
+    fetch_lang.add_argument(
+        "--target",
+        choices=("weiss_jp", "ygo_ocg", "lorcana_i18n"),
+        help="which language-gap dump to write",
+    )
+    fetch_lang.add_argument("--from-file", help="operator JSON to normalize")
 
     build_cmd = subparsers.add_parser("build", help="merge every source into the SQLite database")
     build_cmd.add_argument(
@@ -109,6 +125,19 @@ def main(argv: list[str] | None = None) -> int:
         print_tcdb_help()
         print_beckett_help()
         return 0
+    if command == "fetch-bandai-onepiece":
+        from .fetch_bandai_onepiece import main as bandai_main
+
+        return bandai_main([])
+    if command == "fetch-language-dumps":
+        from .fetch_language_dumps import main as lang_main
+
+        argv: list[str] = []
+        if getattr(args, "target", None):
+            argv.extend(["--target", args.target])
+        if getattr(args, "from_file", None):
+            argv.extend(["--from-file", args.from_file])
+        return lang_main(argv or None)
 
     if command in {"fetch", "update"}:
         sources = list(getattr(args, "source", None) or [])
@@ -191,6 +220,16 @@ def _run_fetch(
 
             print("Fetching apitcg data...")
             print(f"  {fetch_all(games)}")
+        elif source == "bandai_onepiece":
+            from .fetch_bandai_onepiece import print_help
+
+            print("Staging Bandai JP One Piece...")
+            print_help()
+        elif source == "language_dumps":
+            from .fetch_language_dumps import print_help
+
+            print("Staging language-gap dumps...")
+            print_help()
         elif source == "tcdb":
             from .fetch_sports import print_tcdb_help
 

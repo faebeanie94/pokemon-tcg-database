@@ -19,6 +19,7 @@ Environment variables
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 import threading
 import time
@@ -131,9 +132,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Pokemon TCG Card Database",
+    title="Multi-game Card Database",
     version="1.0.0",
-    summary="Every official Pokemon TCG set and card, in every language it was printed in.",
+    summary=(
+        "Trading and sports card catalog for grading: Pokémon, other TCGs, "
+        "and curated sports / entertainment checklists."
+    ),
     lifespan=lifespan,
 )
 
@@ -325,18 +329,37 @@ def list_cards(
 @app.get("/v1/lookup", tags=["cards"])
 def lookup(
     set: str = Query(description="set name, English name or set code"),  # noqa: A002
-    number: str = Query(description="card number as printed, e.g. '004/165'  or 'TG12'"),
+    number: str = Query(
+        description="card number as printed, e.g. '004/165', 'TG12', or sports 'SSL-SM'"
+    ),
     language: str | None = Query(default=None, description="restrict to one language"),
     game: str | None = Query(default=None, description="restrict to one game, e.g. 'pokemon'"),
+    parallel: str | None = Query(default=None, description="sports parallel label, e.g. 'HALO REF'"),
+    subject: str | None = Query(default=None, description="sports subject / player name"),
 ) -> dict[str, Any]:
     """Identify a card from what is printed on it.
 
     Built for grading intake: pass the set as it appears on the label and the
-    collector number (``4``, ``004`` and ``004/165`` are all accepted). Exact
-    set-code and set-name matches are returned ahead of partial matches.
+    collector number (``4``, ``004`` and ``004/165`` are all accepted for TCGs).
+    For sports, prefer alphanumeric numbers (``SSL-SM``) and optional
+    ``parallel`` / ``subject``; do not treat ``09/15`` as a printed total.
+    Exact set-code and set-name matches are returned ahead of partial matches.
     """
-    printed_number = number.split("/")[0].strip()
+    raw_number = number.strip()
+    # Sports serials look like 09/15; TCG printed-totals look like 4/102 with a
+    # large denominator. Only split when the left side is digits and the right
+    # side looks like a set size (>= 10), or when game is explicitly a TCG.
+    printed_number = raw_number
+    if "/" in raw_number and (game or "pokemon") != "sports":
+        left, _, right = raw_number.partition("/")
+        if left.strip().isdigit() and right.strip().isdigit() and int(right.strip()) >= 10:
+            printed_number = left.strip()
+    elif "/" in raw_number and game == "sports":
+        # Never treat sports serial fractions as collector number / printed total.
+        printed_number = raw_number
+
     prefix, value = split_number(printed_number)
+    # Alphanumeric sports numbers (SSL-SM) do not split; match on raw number.
     parameters: dict[str, Any] = {
         "folded": normalize_code(set) or set.lower(),
         "raw": set.strip().lower(),
@@ -354,7 +377,13 @@ def lookup(
     if game:
         where.append("c.game = :game")
         parameters["game"] = game
-    if value is not None:
+    if parallel:
+        where.append("LOWER(COALESCE(c.parallel, '')) = :parallel")
+        parameters["parallel"] = parallel.strip().lower()
+    if subject:
+        where.append("LOWER(COALESCE(c.subject_name, '')) LIKE :subject")
+        parameters["subject"] = f"%{subject.strip().lower()}%"
+    if value is not None and re.fullmatch(r"[A-Za-z]*\d+[A-Za-z]*", printed_number):
         where.append(
             "(c.number = :number "
             "OR (COALESCE(c.number_prefix,'') = :prefix AND c.number_value = :value))"
@@ -386,7 +415,14 @@ def lookup(
         connection.close()
 
     return {
-        "query": {"set": set, "number": number, "language": language},
+        "query": {
+            "set": set,
+            "number": number,
+            "language": language,
+            "game": game,
+            "parallel": parallel,
+            "subject": subject,
+        },
         "matches": len(rows),
         "items": rows,
     }

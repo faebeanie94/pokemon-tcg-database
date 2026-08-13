@@ -11,7 +11,7 @@ spreadsheet spine plus optional automated dumps.
 | [`sources/sports_database.xlsx`](../sources/sports_database.xlsx) | **Spine** — sets (season, manufacturer, sport, set name) |
 | [`sources/sports_cards.xlsx`](../sources/sports_cards.xlsx) | Checklist rows for those sets |
 | [`data/raw/sports/seed.json`](../data/raw/sports/seed.json) | Built-in seed (grading examples + manufacturer coverage) |
-| `sports_checklists.xlsx` (repo root or `sources/`) | Optional combined operator workbook |
+| [`sources/sports_checklists.xlsx`](../sources/sports_checklists.xlsx) | Optional combined operator workbook (template shipped) |
 | `data/raw/tcdb/*.json` | Normalized TCDB dumps (via `apis/tcdb_fetch.py`) |
 | `data/raw/beckett/*.json` | Normalized Beckett article dumps (via `apis/beckett_fetch.py`) |
 
@@ -27,22 +27,28 @@ Load precedence within sports (earlier wins on conflicts):
 
 ```bash
 python3 scripts/seed_sports_xlsx.py
+python3 scripts/create_sports_checklists_template.py   # blank+example workbook
 ```
 
-Writes the two grading examples (Beckham Halo Ref #38, Michaels SSL-SM Ruby Auto)
-into `sources/sports_database.xlsx` and `sources/sports_cards.xlsx`.
+`seed_sports_xlsx.py` syncs `data/raw/sports/seed.json` into
+`sources/sports_database.xlsx` and `sources/sports_cards.xlsx`.
 
 ## Seed / spine coverage
 
 | Set | Manufacturer | Sport | Notes |
 | --- | --- | --- | --- |
-| 2025-26 Topps Manchester United Team Set | Topps | soccer | Beckham #38 base + Halo Ref |
-| 2024 Panini Flawless WWE | Panini | wrestling | Michaels SSL-SM + Undertaker auto |
-| 2025 Topps Chrome Football | Topps | football | Mahomes + Stroud RC (seed.json) |
-| 2026 Upper Deck AEW Wrestling | Upper Deck | wrestling | CM Punk + MJF auto (seed.json) |
-| 2024 Panini Prizm Soccer | Panini | soccer | Messi / Mbappé (seed.json) |
-| 1996-97 Skybox Premium Basketball | Skybox | basketball | Jordan + Kobe RC (seed.json) |
-| 2024 Topps Chrome UFC | Topps | ufc | McGregor + Makhachev (seed.json) |
+| 2025-26 Topps Manchester United Team Set | Topps | soccer | Beckham #38 base + Halo Ref + more |
+| 2024 Panini Flawless WWE | Panini | wrestling | Michaels SSL-SM + Undertaker / Cena |
+| 2025 Topps Chrome Football | Topps | football | Mahomes + Stroud RC + Hurts |
+| 2026 Upper Deck AEW Wrestling | Upper Deck | wrestling | CM Punk + MJF + Ospreay |
+| 2024 Panini Prizm Soccer | Panini | soccer | Messi / Mbappé / Haaland |
+| 1996-97 Skybox Premium Basketball | Skybox | basketball | Jordan + Kobe / Iverson RC |
+| 2024 Topps Chrome UFC | Topps | ufc | McGregor + Makhachev + Volkanovski |
+| 2024 Panini Donruss Football | Panini | football | Allen + Caleb Williams RC |
+| 2025 Topps UEFA Club Competitions | Topps | soccer | Vinicius + Bellingham |
+| 1989 Bandai Carddass DBZ Part 1 | Bandai | carddass | Phase 5 sample |
+| 1998 Meiji Pokemon Get Card | Meiji | promo | Phase 5 sample |
+| 1992 Marvel Universe Series 1 | Impel | marvel | Phase 5 sample (not Dice Masters) |
 
 After editing:
 

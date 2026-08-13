@@ -55,3 +55,9 @@ def test_normalize_code_folds_case_and_punctuation():
 def test_normalize_name_ignores_accents_and_punctuation():
     assert normalize_name("Pokémon Jungle") == normalize_name("pokemon jungle")
     assert normalize_name("Scarlet & Violet") == "scarletviolet"
+
+
+def test_normalize_name_preserves_japanese_dakuten():
+    # Folding dakuten globally would turn リザードン into リサトン.
+    assert normalize_name("リザードン") == "リザードン".lower()
+    assert normalize_name("リザードン") != normalize_name("リサトン")

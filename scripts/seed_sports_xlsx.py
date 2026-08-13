@@ -3,7 +3,7 @@
 
 Creates:
   sources/sports_database.xlsx  — set spine (season, manufacturer, sport, …)
-  sources/sports_cards.xlsx     — checklist rows for the two grading examples
+  sources/sports_cards.xlsx     — checklist rows aligned with data/raw/sports/seed.json
 
 Run from the repo root:
 
@@ -12,6 +12,7 @@ Run from the repo root:
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -21,74 +22,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from openpyxl import Workbook  # noqa: E402
 
 SOURCES = ROOT / "sources"
-
-SETS = [
-    {
-        "season": "2025-26",
-        "manufacturer": "Topps",
-        "sport": "soccer",
-        "set_name": "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
-        "release_date": "2025-09-01",
-        "source_set_id": "2025-26-topps-manchester-united-team-set",
-        "language": "en",
-    },
-    {
-        "season": "2024",
-        "manufacturer": "Panini",
-        "sport": "wrestling",
-        "set_name": "2024 PANINI FLAWLESS WWE",
-        "release_date": "2024-11-15",
-        "source_set_id": "2024-panini-flawless-wwe",
-        "language": "en",
-    },
-]
-
-CARDS = [
-    {
-        "set_id": "2025-26-topps-manchester-united-team-set",
-        "set_name": "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
-        "number": "38",
-        "subject": "SIR DAVID BECKHAM",
-        "parallel": "",
-        "variant_tags": "",
-        "serial_number": "",
-        "serial_total": "",
-        "display_name": "SIR DAVID BECKHAM",
-    },
-    {
-        "set_id": "2025-26-topps-manchester-united-team-set",
-        "set_name": "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
-        "number": "38",
-        "subject": "SIR DAVID BECKHAM",
-        "parallel": "HALO REF",
-        "variant_tags": "",
-        "serial_number": "",
-        "serial_total": "",
-        "display_name": "SIR DAVID BECKHAM - HALO REF.",
-    },
-    {
-        "set_id": "2024-panini-flawless-wwe",
-        "set_name": "2024 PANINI FLAWLESS WWE",
-        "number": "SSL-SM",
-        "subject": "SHAWN MICHAELS",
-        "parallel": "",
-        "variant_tags": "",
-        "serial_number": "",
-        "serial_total": "",
-        "display_name": "SHAWN MICHAELS",
-    },
-    {
-        "set_id": "2024-panini-flawless-wwe",
-        "set_name": "2024 PANINI FLAWLESS WWE",
-        "number": "SSL-SM",
-        "subject": "SHAWN MICHAELS",
-        "parallel": "RUBY REF",
-        "variant_tags": "AUTO",
-        "serial_number": "09",
-        "serial_total": "15",
-        "display_name": "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15",
-    },
-]
+SEED = ROOT / "data" / "raw" / "sports" / "seed.json"
 
 
 def _write(path: Path, headers: list[str], rows: list[dict]) -> None:
@@ -104,10 +38,40 @@ def _write(path: Path, headers: list[str], rows: list[dict]) -> None:
 
 
 def main() -> int:
+    payload = json.loads(SEED.read_text(encoding="utf-8"))
+    sets = []
+    for item in payload.get("sets") or []:
+        sets.append(
+            {
+                "season": item.get("product_year") or "",
+                "manufacturer": item.get("manufacturer") or "",
+                "sport": item.get("sport") or "",
+                "set_name": item.get("name") or "",
+                "release_date": item.get("release_date") or "",
+                "source_set_id": item.get("id") or "",
+                "language": item.get("language") or "en",
+            }
+        )
+    cards = []
+    for item in payload.get("cards") or []:
+        cards.append(
+            {
+                "set_id": item.get("set_id") or "",
+                "set_name": "",
+                "number": item.get("number") or "",
+                "subject": item.get("subject_name") or "",
+                "parallel": item.get("parallel") or "",
+                "variant_tags": item.get("notations") or "",
+                "serial_number": item.get("serial_number") or "",
+                "serial_total": item.get("print_run") or "",
+                "display_name": item.get("display_name") or item.get("name") or "",
+            }
+        )
+
     _write(
         SOURCES / "sports_database.xlsx",
         ["season", "manufacturer", "sport", "set_name", "release_date", "source_set_id", "language"],
-        SETS,
+        sets,
     )
     _write(
         SOURCES / "sports_cards.xlsx",
@@ -122,7 +86,7 @@ def main() -> int:
             "serial_total",
             "display_name",
         ],
-        CARDS,
+        cards,
     )
     return 0
 
