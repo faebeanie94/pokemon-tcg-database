@@ -1,33 +1,57 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
-import { initSchema } from "./catalog";
+import {
+  buildMatchIndex,
+  isCatalogBuilt,
+  isIndexStale,
+  registerSqlFunctions,
+} from "./catalog";
 
 let dbInstance: Database.Database | null = null;
 
+/**
+ * The single card database, built by `python -m pokedb build`. POKEDB_DB is the
+ * same variable the Python service reads, so both point at one file by default.
+ */
 export function resolveDbPath(): string {
   return (
-    process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "catalog.db")
+    process.env.POKEDB_DB ??
+    process.env.DATABASE_PATH ??
+    path.join(process.cwd(), "build", "pokemon_tcg.sqlite")
   );
 }
 
 /**
- * Lazily-initialized singleton SQLite connection.
+ * Lazily-initialized singleton connection to the card database.
  *
- * The schema is created on first access, but no data is seeded: the catalog is
- * loaded from the exported workbooks by `pnpm import:catalog`. A fresh checkout
- * therefore answers queries against an empty catalog rather than fabricated
- * cards, which is the safer default for a grading lookup.
+ * The canonical tables are read-only as far as this app is concerned. The
+ * derived match index in the same file is rebuilt automatically when it is
+ * missing or older than the current build, because the Python service refreshes
+ * by swapping in a freshly built file that has no index in it yet.
  */
 export function getDb(): Database.Database {
   if (dbInstance) return dbInstance;
 
   const dbPath = resolveDbPath();
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+  if (!fs.existsSync(dbPath)) {
+    throw new Error(
+      `no card database at ${dbPath}. Run \`python -m pokedb update\` to build it, ` +
+        `or set POKEDB_DB to an existing build.`
+    );
+  }
 
   const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
-  initSchema(db);
+  registerSqlFunctions(db);
+
+  if (isCatalogBuilt(db) && isIndexStale(db)) {
+    console.log("Match index is missing or out of date; rebuilding...");
+    const stats = buildMatchIndex(db);
+    console.log(
+      `Match index built: ${stats.cards} cards, ${stats.setTokens} set tokens.`
+    );
+  }
 
   dbInstance = db;
   return db;

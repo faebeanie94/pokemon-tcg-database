@@ -25,7 +25,6 @@ export async function GET(request: Request) {
     language: searchParams.get("language") ?? undefined,
     set: searchParams.get("set") ?? undefined,
     number: searchParams.get("number") ?? undefined,
-    source: searchParams.get("source") ?? undefined,
     limit,
     offset,
   });

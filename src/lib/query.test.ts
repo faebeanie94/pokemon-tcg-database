@@ -26,6 +26,11 @@ describe("parseCardQuery", () => {
     expect(parseCardQuery("SV1a-001").cardId).toBe("sv1a-001");
   });
 
+  it("recognises a canonical card UID, which is what a grading record stores", () => {
+    expect(parseCardQuery("en:bs#4").cardId).toBe("en:bs#4");
+    expect(parseCardQuery("zh-cn:csve2c#001").cardId).toBe("zh-cn:csve2c#001");
+  });
+
   it("does not mistake a hyphenated name for a card ID", () => {
     const parsed = parseCardQuery("Ho-Oh");
     expect(parsed.cardId).toBeUndefined();

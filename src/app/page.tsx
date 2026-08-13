@@ -332,7 +332,7 @@ function IdentifyResults({
         <ol className="space-y-2">
           {result.candidates.map((candidate, index) => (
             <li
-              key={candidate.card.id}
+              key={candidate.card.card_uid}
               className={`rounded-xl border bg-white p-4 shadow-sm ${
                 index === 0 && result.unambiguous
                   ? "border-emerald-300 ring-1 ring-emerald-200"
@@ -405,7 +405,7 @@ function BrowseResults({
         <ul className="space-y-2">
           {cards.map((card) => (
             <li
-              key={card.id}
+              key={card.card_uid}
               className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -459,8 +459,8 @@ function Interpretation({
   if (read.printedTotal) parts.push(`printed total ${read.printedTotal}`);
   for (const set of read.sets) {
     parts.push(
-      `set "${set.token}" (${set.setIds.length} ${
-        set.setIds.length === 1 ? "set" : "sets"
+      `set "${set.token}" (${set.setUids.length} ${
+        set.setUids.length === 1 ? "set" : "sets"
       })`
     );
   }
@@ -501,8 +501,8 @@ function CardLocation({ card }: { card: CatalogCard }) {
   return (
     <div className="mt-1 text-sm text-slate-600">
       <span className="font-medium">{card.set_name}</span>
-      {card.set_abbreviation && (
-        <span className="text-slate-400"> ({card.set_abbreviation})</span>
+      {card.set_code && (
+        <span className="text-slate-400"> ({card.set_code})</span>
       )}
       <span className="text-slate-400"> · </span>
       <span>
@@ -518,7 +518,7 @@ function CardLocation({ card }: { card: CatalogCard }) {
 function SourceId({ card }: { card: CatalogCard }) {
   return (
     <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
-      {card.source}:{card.source_card_id}
+      {card.card_uid}
     </code>
   );
 }

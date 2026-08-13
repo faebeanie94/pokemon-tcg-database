@@ -4,17 +4,21 @@ import { getCard } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * One card by canonical UID, e.g. /api/cards/en:BS%234 for 'en:BS#4'. The UID
+ * is stable across rebuilds, so it is safe for a grading record to store.
+ */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const numericId = Number(id);
-  if (!Number.isInteger(numericId)) {
-    return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  const cardUid = decodeURIComponent(id).trim();
+  if (!cardUid) {
+    return NextResponse.json({ error: "card id is required" }, { status: 400 });
   }
 
-  const card = getCard(getDb(), numericId);
+  const card = getCard(getDb(), cardUid);
   if (!card) {
     return NextResponse.json({ error: "card not found" }, { status: 404 });
   }

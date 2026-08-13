@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
-    "import:catalog": "tsx scripts/import-catalog.ts",
+    "build:index": "tsx scripts/build-match-index.ts",
+    "refresh": "PYTHONPATH=src python3 -m pokedb update && pnpm build:index",
     "test": "vitest run",
     "test:watch": "vitest"
   },

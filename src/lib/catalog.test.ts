@@ -1,7 +1,15 @@
 import type { Database } from "better-sqlite3";
 import { beforeEach, describe, expect, it } from "vitest";
 import { buildTestCatalog } from "./__fixtures__/catalog";
-import { countCards, getCard, listLanguages, listSets, searchCards } from "./catalog";
+import {
+  canonicalBuiltAt,
+  countCards,
+  getCard,
+  isIndexStale,
+  listLanguages,
+  listSets,
+  searchCards,
+} from "./catalog";
 
 describe("searchCards", () => {
   let db: Database;
@@ -12,7 +20,7 @@ describe("searchCards", () => {
 
   it("finds cards by a fragment of the name", () => {
     const { cards } = searchCards(db, { q: "chariz", language: "en" });
-    expect(cards.map((c) => c.set_id).sort()).toEqual(["base1", "base4", "base5"]);
+    expect(cards.map((c) => c.set_uid).sort()).toEqual(["en:b2", "en:bs", "en:tr"]);
   });
 
   it("finds CJK names by substring", () => {
@@ -33,9 +41,10 @@ describe("searchCards", () => {
     expect(cards[0].name).toBe("Dark Charizard");
   });
 
-  it("filters by set given an ID, abbreviation or name", () => {
-    expect(searchCards(db, { set: "base5" }).total).toBe(1);
+  it("filters by set given a code, canonical UID or source ID", () => {
+    expect(searchCards(db, { set: "en:tr" }).total).toBe(1);
     expect(searchCards(db, { set: "B2" }).total).toBe(1);
+    expect(searchCards(db, { set: "base5" }).total).toBe(1);
     expect(searchCards(db, { set: "team rocket" }).total).toBe(1);
   });
 
@@ -46,6 +55,12 @@ describe("searchCards", () => {
     expect(padded.cards[0].name).toBe("トロピウス");
   });
 
+  it("exposes the English name of an English card", () => {
+    // English printings carry no separate English name in the build.
+    const { cards } = searchCards(db, { set: "en:bs", number: "4" });
+    expect(cards[0].english_name).toBe("Charizard");
+  });
+
   it("paginates and reports the full total", () => {
     const firstPage = searchCards(db, { q: "Charizard", limit: 2, offset: 0 });
     const secondPage = searchCards(db, { q: "Charizard", limit: 2, offset: 2 });
@@ -53,14 +68,13 @@ describe("searchCards", () => {
     expect(firstPage.total).toBeGreaterThan(2);
     expect(firstPage.total).toBe(secondPage.total);
     expect(firstPage.cards).toHaveLength(2);
-    expect(firstPage.cards.map((c) => c.id)).not.toEqual(
-      secondPage.cards.map((c) => c.id)
+    expect(firstPage.cards.map((c) => c.card_uid)).not.toEqual(
+      secondPage.cards.map((c) => c.card_uid)
     );
   });
 
   it("caps an oversized limit", () => {
-    const { limit } = searchCards(db, { limit: 10_000 });
-    expect(limit).toBe(200);
+    expect(searchCards(db, { limit: 10_000 }).limit).toBe(200);
   });
 
   it("returns everything when given no filters", () => {
@@ -83,24 +97,40 @@ describe("catalog metadata", () => {
 
   it("lists sets and filters them by language", () => {
     const db = buildTestCatalog();
-    expect(listSets(db, {}).length).toBe(7);
-    expect(listSets(db, { language: "en" }).map((s) => s.set_id).sort()).toEqual([
-      "base1",
-      "base4",
-      "base5",
-    ]);
+    expect(listSets(db, {}).length).toBe(8);
+    expect(
+      listSets(db, { language: "en" })
+        .map((s) => s.set_uid)
+        .sort()
+    ).toEqual(["en:b2", "en:bs", "en:bs-1999", "en:tr"]);
   });
 
-  it("finds a set by abbreviation or name fragment", () => {
+  it("finds a set by code or name fragment", () => {
     const db = buildTestCatalog();
-    expect(listSets(db, { q: "rocket" }).map((s) => s.set_id)).toEqual(["base5"]);
-    expect(listSets(db, { q: "B2" }).map((s) => s.set_id)).toEqual(["base4"]);
+    expect(listSets(db, { q: "Rocket" }).map((s) => s.set_uid)).toEqual(["en:tr"]);
+    expect(listSets(db, { q: "B2" }).map((s) => s.set_uid)).toEqual(["en:b2"]);
   });
 
-  it("reads a single card by its catalog ID", () => {
+  it("reads a single card by its canonical UID", () => {
     const db = buildTestCatalog();
-    const { cards } = searchCards(db, { set: "base5" });
-    expect(getCard(db, cards[0].id)?.name).toBe("Dark Charizard");
-    expect(getCard(db, 999_999)).toBeUndefined();
+    expect(getCard(db, "en:tr#4")?.name).toBe("Dark Charizard");
+    expect(getCard(db, "en:tr#999")).toBeUndefined();
+  });
+});
+
+describe("match index freshness", () => {
+  it("is fresh once built from the current card data", () => {
+    const db = buildTestCatalog();
+    expect(canonicalBuiltAt(db)).toBe("2026-01-01T00:00:00Z");
+    expect(isIndexStale(db)).toBe(false);
+  });
+
+  it("goes stale when the card data is rebuilt underneath it", () => {
+    const db = buildTestCatalog();
+    // What the Python service does when it swaps in a fresh build.
+    db.prepare("UPDATE build_info SET value = ? WHERE key = 'built_at'").run(
+      "2026-06-01T00:00:00Z"
+    );
+    expect(isIndexStale(db)).toBe(true);
   });
 });

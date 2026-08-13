@@ -34,6 +34,12 @@ const NUMBER_OVER_TOTAL = /^([\p{L}\p{N}]+)\/(\d+)$/u;
  */
 const CARD_ID = /^([\p{L}\p{N}.]*\d[\p{L}\p{N}.]*)-(\d+[a-z]?)$/iu;
 
+/**
+ * A canonical card UID, '<language>:<set code>#<number>' such as "en:bs#4".
+ * This is what a grading record stores, so pasting one back in has to work.
+ */
+const CANONICAL_UID = /^[a-z]{2}(-[a-z]{2})?:[^\s#]+#\S+$/i;
+
 /** Digits only, so unambiguously a collector number. */
 const PURE_NUMBER = /^\d{1,5}$/;
 
@@ -52,7 +58,7 @@ export function parseCardQuery(raw: string): ParsedQuery {
       continue;
     }
 
-    if (!parsed.cardId && CARD_ID.test(token)) {
+    if (!parsed.cardId && (CANONICAL_UID.test(token) || CARD_ID.test(token))) {
       parsed.cardId = token.toLowerCase();
       continue;
     }

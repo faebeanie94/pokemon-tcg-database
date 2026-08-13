@@ -5,16 +5,14 @@ been printed in, plus the tools to browse and serve it.
 
 | Part | What it is | Start here |
 | --- | --- | --- |
-| **Card data** | A Python pipeline that merges the public sources into one Excel workbook and a JSON lookup API. Built for card identification at grading intake. | [Card data](#card-data) |
-| **Web app** | A Next.js app that loads the same spreadsheets into its own SQLite catalog and serves a card matching API plus an operator console. | [Web app](#web-app) |
+| **Card data** | The Python pipeline that merges the public sources into the one card database, an Excel workbook, and a JSON API. | [Card data](#card-data) |
+| **Web app** | A Next.js card matching service and operator console, reading that same database. | [Web app](#web-app) |
 | **Export scripts** | The standalone scripts (`apis/`) that produced the spreadsheets in this repo. | [Export scripts](#export-scripts) |
 
-> **Two lookup implementations currently coexist.** The Python pipeline serves
-> `GET /v1/lookup` and the Next.js app serves `POST /api/match`; both identify a
-> card from its set, collector number, name and language, from the same source
-> spreadsheets. They were built in parallel and neither has been retired. See
-> [Which lookup should survive](#which-lookup-should-survive) before building on
-> either.
+> **One database, two services.** `python -m pokedb build` produces
+> `build/pokemon_tcg.sqlite`, and that file is the single source of truth. Both
+> the FastAPI service and the Next.js app read it — there is no second copy of
+> the card data. See [How the pieces fit](#how-the-pieces-fit).
 
 ---
 
@@ -162,11 +160,12 @@ code — it returns the catalog rows that card could be, ranked, with the reason
 each one matched. Built with **Next.js (App Router) + TypeScript**, **SQLite**
 via `better-sqlite3`, and **Tailwind CSS**.
 
-It loads the source spreadsheets into its own catalog at `data/catalog.db`:
-145,018 printings across 13 languages, from `tcgdex_cards.xlsx` (132,695) and
-`pikaqian_cards.xlsx` (12,323, Simplified Chinese). Each row holds only what
-identifies a printing — language, set, collector number, printed total, name,
-and the English name where a source provides one. No rarity, type, HP or images.
+It reads the card data built above — it does not build or own any of it. On top
+of the canonical `cards` and `sets` tables it maintains a **match index** in the
+same file (`match_cards`, `match_sets`, `cards_fts`) holding normalized
+comparison keys and a full-text index. That index is derived, so it is rebuilt
+rather than edited, and the app rebuilds it by itself whenever it finds one
+missing or older than the current build.
 
 The console at `/` has two modes. **Identify** takes what is printed on a card
 and shows the ranked candidates with the reason each matched, through the same
@@ -176,16 +175,23 @@ working through a set instead.
 
 ## Getting started
 
-Requires Node.js 22+ and pnpm.
+Requires Node.js 22+ and pnpm, and the card data from above.
 
 ```bash
-pnpm install          # install dependencies
-pnpm import:catalog   # load the spreadsheets into SQLite (~6 seconds)
-pnpm dev              # start the server at http://localhost:3000
+pip install -r requirements.txt
+PYTHONPATH=src python3 -m pokedb update   # build the card database (once)
+
+pnpm install
+pnpm build:index                          # derive the match index (~1 second)
+pnpm dev                                  # http://localhost:3000
 ```
 
-The catalog is **not** seeded automatically: a fresh checkout answers queries
-against an empty database until `pnpm import:catalog` has run.
+Later refreshes are one command: `pnpm refresh` rebuilds the card data and the
+match index together.
+
+If `build/pokemon_tcg.sqlite` does not exist the app says so and stops, rather
+than serving an empty catalog. Point it elsewhere with `POKEDB_DB`, the same
+variable the Python service uses.
 
 ## How matching works
 
@@ -259,40 +265,49 @@ instead of `query` when the caller already has them separated.
 | Command | Description |
 | ------- | ----------- |
 | `pnpm dev` | Development server on port 3000 |
-| `pnpm import:catalog` | Load the spreadsheets into SQLite (`--reset` to rebuild) |
+| `pnpm build:index` | Derive the match index from the card database |
+| `pnpm refresh` | Rebuild the card data and the match index together |
 | `pnpm build` / `pnpm start` | Production build and server |
 | `pnpm lint` | ESLint |
 | `pnpm test` | Vitest suite |
 
 ---
 
-# Which lookup should survive
+# How the pieces fit
 
-Two independent implementations of card lookup now live in this repo, built in
-parallel from the same spreadsheets:
+There is **one** card database. Python builds it; both services read it.
 
-| | Python (`src/pokedb`) | Next.js (`src/app`, `src/lib`) |
-|---|---|---|
-| Lookup endpoint | `GET /v1/lookup?set=&number=` | `POST /api/match` |
-| Input | Set and number as separate fields | Either one free-text string or separate fields |
-| Result | Rows ranked by set-match kind | Scored candidates, the reasons each matched, and an `unambiguous` flag |
-| Name search | `LIKE` over name columns | FTS5 trigram index, so partial CJK names match |
-| Sources merged | database.xlsx, pikaqian, TCGdex, with per-source provenance | tcgdex and pikaqian workbooks |
-| English names for JA/ZH/KO | Derived from PokéAPI species names | Only where a source supplies one |
-| Deployment | Docker, self-refreshing on a timer, weekly CI rebuild | `pnpm import:catalog`, run by hand |
-| Operator UI | none | Yes, on `/` |
+```mermaid
+flowchart TD
+    xlsx["database.xlsx<br/>pikaqian_cards.xlsx"] --> build["python -m pokedb build"]
+    tcgdex["TCGdex API"] --> build
+    pokeapi["PokeAPI species names"] --> build
+    build --> db[("build/pokemon_tcg.sqlite<br/>sets, cards")]
+    db --> index["pnpm build:index<br/>adds match_cards, match_sets, cards_fts"]
+    index --> db
+    db --> fastapi["FastAPI :8000<br/>/v1/lookup, /v1/cards, workbook download"]
+    db --> next["Next.js :3000<br/>/api/match + operator console"]
+    db --> exports["Excel workbook and CSVs"]
+```
 
-Neither is a superset of the other. The Python side has the stronger data
-pipeline — multi-source merging with provenance, PokéAPI-derived English names
-for Japanese, Chinese and Korean cards, and an automated refresh. The Next.js
-side has the stronger matching — one free-text box, explainable scores, an
-`unambiguous` flag a grading program can act on, and substring search that works
-in CJK.
+Only the Python build writes the `sets` and `cards` tables. The Next.js side
+writes nothing except its own derived match index, in the same file, which can
+be thrown away and rebuilt at any time.
 
-The obvious end state is one service: keep the Python pipeline as the builder
-and have the matching layer read `build/pokemon_tcg.sqlite` instead of
-maintaining a second importer. That is a decision to make deliberately, not a
-merge to resolve, so both are left in place for now.
+Both services can run at once — different ports, one dataset, and the same
+`card_uid` in both, so a grading record refers to the same card whichever
+answered.
+
+| Use | Endpoint |
+|---|---|
+| Identify a card from free text, with scores and an `unambiguous` flag | `POST /api/match` (Next.js) |
+| Identify a card from a known set plus number | either; `/v1/lookup` if you are already on the Python service |
+| Browse or search the catalog, paginated | `GET /api/cards` or `GET /v1/cards` |
+| Download the Excel workbook | `GET /v1/download/workbook` (Python) |
+
+The one thing only the Next.js service does is free-text matching: a single box
+that reads "Charizard 4/102" or "SV1a 001", scores the candidates, explains why
+each matched, and says whether the top hit is safe to accept without a human.
 
 ---
 
