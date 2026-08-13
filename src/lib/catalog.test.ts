@@ -20,7 +20,7 @@ describe("searchCards", () => {
 
   it("finds cards by a fragment of the name", () => {
     const { cards } = searchCards(db, { q: "chariz", language: "en" });
-    expect(cards.map((c) => c.set_uid).sort()).toEqual(["en:b2", "en:bs", "en:tr"]);
+    expect(cards.map((c) => c.set_uid).sort()).toEqual(["pokemon:en:b2", "pokemon:en:bs", "pokemon:en:tr"]);
   });
 
   it("finds CJK names by substring", () => {
@@ -42,7 +42,7 @@ describe("searchCards", () => {
   });
 
   it("filters by set given a code, canonical UID or source ID", () => {
-    expect(searchCards(db, { set: "en:tr" }).total).toBe(1);
+    expect(searchCards(db, { set: "pokemon:en:tr" }).total).toBe(1);
     expect(searchCards(db, { set: "B2" }).total).toBe(1);
     expect(searchCards(db, { set: "base5" }).total).toBe(1);
     expect(searchCards(db, { set: "team rocket" }).total).toBe(1);
@@ -57,7 +57,7 @@ describe("searchCards", () => {
 
   it("exposes the English name of an English card", () => {
     // English printings carry no separate English name in the build.
-    const { cards } = searchCards(db, { set: "en:bs", number: "4" });
+    const { cards } = searchCards(db, { set: "pokemon:en:bs", number: "4" });
     expect(cards[0].english_name).toBe("Charizard");
   });
 
@@ -102,18 +102,18 @@ describe("catalog metadata", () => {
       listSets(db, { language: "en" })
         .map((s) => s.set_uid)
         .sort()
-    ).toEqual(["en:b2", "en:bs", "en:bs-1999", "en:tr"]);
+    ).toEqual(["pokemon:en:b2", "pokemon:en:bs", "pokemon:en:bs-1999", "pokemon:en:tr"]);
   });
 
   it("finds a set by code or name fragment", () => {
     const db = buildTestCatalog();
-    expect(listSets(db, { q: "Rocket" }).map((s) => s.set_uid)).toEqual(["en:tr"]);
-    expect(listSets(db, { q: "B2" }).map((s) => s.set_uid)).toEqual(["en:b2"]);
+    expect(listSets(db, { q: "Rocket" }).map((s) => s.set_uid)).toEqual(["pokemon:en:tr"]);
+    expect(listSets(db, { q: "B2" }).map((s) => s.set_uid)).toEqual(["pokemon:en:b2"]);
   });
 
   it("reads a single card by its canonical UID", () => {
     const db = buildTestCatalog();
-    expect(getCard(db, "en:tr#4")?.name).toBe("Dark Charizard");
+    expect(getCard(db, "pokemon:en:tr#4")?.name).toBe("Dark Charizard");
     expect(getCard(db, "en:tr#999")).toBeUndefined();
   });
 });

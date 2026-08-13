@@ -20,14 +20,17 @@ const SCHEMA_PATH = path.join(process.cwd(), "src", "pokedb", "schema.sql");
 
 interface SetRow {
   set_uid: string;
+  game: string;
   language: string;
   name: string;
   name_en: string | null;
   abbreviation: string | null;
   release_date: string;
   card_count_official: number | null;
-  tcgdex_set_id: string | null;
+  source_id: string | null;
 }
+
+const GAMES = [{ code: "pokemon", name: "Pokémon TCG", kind: "tcg" }];
 
 const LANGUAGES = [
   { code: "en", name_en: "English", name_native: "English", region: "western" },
@@ -43,15 +46,15 @@ const LANGUAGES = [
 ];
 
 const SETS: SetRow[] = [
-  set("en:bs", "en", "Base Set", "Base Set", "BS", "1999-01-09", 102, "base1"),
-  // Same printed code as en:bs, which is why "BS" alone cannot be decisive.
-  set("en:bs-1999", "en", "Base Set (Shadowless)", "Base Set (Shadowless)", "BS", "1999-01-09", null, null),
-  set("fr:bs", "fr", "Set de Base", null, "BS", "1999-01-09", 102, "base1"),
-  set("de:bs", "de", "Grundset", null, "BS", "1999-01-09", 102, "base1"),
-  set("en:b2", "en", "Base Set 2", "Base Set 2", "B2", "2000-02-24", 130, "base4"),
-  set("en:tr", "en", "Team Rocket", "Team Rocket", "TR", "2000-04-24", 82, "base5"),
-  set("ja:sv1a", "ja", "トリプレットビート", "Triplet Beat", "SV1a", "2023-03-10", 73, "SV1a"),
-  set("zh-cn:csve2c", "zh-cn", "对战派对 耀梦", "Battle Party: Shining Dream", "CSVE2C", "2024-05-01", null, null),
+  set("pokemon:en:bs", "pokemon", "en", "Base Set", "Base Set", "BS", "1999-01-09", 102, "base1"),
+  // Same printed code as pokemon:en:bs, which is why "BS" alone cannot be decisive.
+  set("pokemon:en:bs-1999", "pokemon", "en", "Base Set (Shadowless)", "Base Set (Shadowless)", "BS", "1999-01-09", null, null),
+  set("pokemon:fr:bs", "pokemon", "fr", "Set de Base", null, "BS", "1999-01-09", 102, "base1"),
+  set("pokemon:de:bs", "pokemon", "de", "Grundset", null, "BS", "1999-01-09", 102, "base1"),
+  set("pokemon:en:b2", "pokemon", "en", "Base Set 2", "Base Set 2", "B2", "2000-02-24", 130, "base4"),
+  set("pokemon:en:tr", "pokemon", "en", "Team Rocket", "Team Rocket", "TR", "2000-04-24", 82, "base5"),
+  set("pokemon:ja:sv1a", "pokemon", "ja", "トリプレットビート", "Triplet Beat", "SV1a", "2023-03-10", 73, "SV1a"),
+  set("pokemon:zh-cn:csve2c", "pokemon", "zh-cn", "对战派对 耀梦", "Battle Party: Shining Dream", "CSVE2C", "2024-05-01", null, null),
 ];
 
 interface CardRow {
@@ -63,21 +66,26 @@ interface CardRow {
 }
 
 const CARDS: CardRow[] = [
-  { set_uid: "en:bs", number: "4", name: "Charizard", name_en: null, card_id: "base1-4" },
-  { set_uid: "en:bs", number: "2", name: "Blastoise", name_en: null, card_id: "base1-2" },
-  { set_uid: "fr:bs", number: "4", name: "Dracaufeu", name_en: "Charizard", card_id: "base1-4" },
-  { set_uid: "fr:bs", number: "2", name: "Tortank", name_en: "Blastoise", card_id: "base1-2" },
-  { set_uid: "de:bs", number: "4", name: "Glurak", name_en: "Charizard", card_id: "base1-4" },
-  { set_uid: "en:b2", number: "4", name: "Charizard", name_en: null, card_id: "base4-4" },
-  { set_uid: "en:tr", number: "4", name: "Dark Charizard", name_en: null, card_id: "base5-4" },
-  { set_uid: "ja:sv1a", number: "001", name: "トロピウス", name_en: "Tropius", card_id: "SV1a-001" },
-  { set_uid: "ja:sv1a", number: "013", name: "メガリザードンXex", name_en: null, card_id: "SV1a-013" },
-  { set_uid: "zh-cn:csve2c", number: "001", name: "妙蛙种子", name_en: "Bulbasaur", card_id: "uuid-bulbasaur" },
+  { set_uid: "pokemon:en:bs", number: "4", name: "Charizard", name_en: null, card_id: "base1-4" },
+  { set_uid: "pokemon:en:bs", number: "2", name: "Blastoise", name_en: null, card_id: "base1-2" },
+  { set_uid: "pokemon:fr:bs", number: "4", name: "Dracaufeu", name_en: "Charizard", card_id: "base1-4" },
+  { set_uid: "pokemon:fr:bs", number: "2", name: "Tortank", name_en: "Blastoise", card_id: "base1-2" },
+  { set_uid: "pokemon:de:bs", number: "4", name: "Glurak", name_en: "Charizard", card_id: "base1-4" },
+  { set_uid: "pokemon:en:b2", number: "4", name: "Charizard", name_en: null, card_id: "base4-4" },
+  { set_uid: "pokemon:en:tr", number: "4", name: "Dark Charizard", name_en: null, card_id: "base5-4" },
+  { set_uid: "pokemon:ja:sv1a", number: "001", name: "トロピウス", name_en: "Tropius", card_id: "SV1a-001" },
+  { set_uid: "pokemon:ja:sv1a", number: "013", name: "メガリザードンXex", name_en: null, card_id: "SV1a-013" },
+  { set_uid: "pokemon:zh-cn:csve2c", number: "001", name: "妙蛙种子", name_en: "Bulbasaur", card_id: "uuid-bulbasaur" },
 ];
 
 export function buildTestCatalog(): Database.Database {
   const db = new Database(":memory:");
   db.exec(fs.readFileSync(SCHEMA_PATH, "utf8"));
+
+  const insertGame = db.prepare(
+    `INSERT INTO games (code, name, kind) VALUES (@code, @name, @kind)`
+  );
+  for (const game of GAMES) insertGame.run(game);
 
   const insertLanguage = db.prepare(
     `INSERT INTO languages (code, name_en, name_native, region)
@@ -86,21 +94,28 @@ export function buildTestCatalog(): Database.Database {
   for (const language of LANGUAGES) insertLanguage.run(language);
 
   const insertSet = db.prepare(
-    `INSERT INTO sets (set_uid, language, name, name_en, abbreviation, release_date,
+    `INSERT INTO sets (set_uid, game, language, name, name_en, abbreviation, release_date,
                        release_year, series_name, card_count_official, card_count_total,
-                       card_count_loaded, tcgdex_set_id, sources, source_count)
-     VALUES (@set_uid, @language, @name, @name_en, @abbreviation, @release_date,
+                       card_count_loaded, sources, source_count)
+     VALUES (@set_uid, @game, @language, @name, @name_en, @abbreviation, @release_date,
              @release_year, NULL, @card_count_official, @card_count_official,
-             0, @tcgdex_set_id, 'test', 1)`
+             0, 'test', 1)`
+  );
+  const insertSourceId = db.prepare(
+    `INSERT INTO set_source_ids (set_uid, source, source_id)
+     VALUES (@set_uid, 'test', @source_id)`
   );
   for (const row of SETS) {
     insertSet.run({ ...row, release_year: Number(row.release_date.slice(0, 4)) });
+    if (row.source_id) {
+      insertSourceId.run({ set_uid: row.set_uid, source_id: row.source_id });
+    }
   }
 
   const insertCard = db.prepare(
-    `INSERT INTO cards (card_uid, set_uid, language, number, number_prefix, number_value,
+    `INSERT INTO cards (card_uid, set_uid, game, language, number, number_prefix, number_value,
                         name, name_en, name_en_source, card_id, sources)
-     VALUES (@card_uid, @set_uid, @language, @number, NULL, @number_value,
+     VALUES (@card_uid, @set_uid, @game, @language, @number, NULL, @number_value,
              @name, @name_en, @name_en_source, @card_id, 'test')`
   );
   for (const row of CARDS) {
@@ -108,6 +123,7 @@ export function buildTestCatalog(): Database.Database {
     insertCard.run({
       ...row,
       card_uid: `${row.set_uid}#${row.number}`,
+      game: setRow.game,
       language: setRow.language,
       number_value: Number(row.number),
       name_en_source: row.name_en ? "source" : null,
@@ -128,22 +144,24 @@ export function buildTestCatalog(): Database.Database {
 
 function set(
   set_uid: string,
+  game: string,
   language: string,
   name: string,
   name_en: string | null,
   abbreviation: string | null,
   release_date: string,
   card_count_official: number | null,
-  tcgdex_set_id: string | null
+  source_id: string | null
 ): SetRow {
   return {
     set_uid,
+    game,
     language,
     name,
     name_en,
     abbreviation,
     release_date,
     card_count_official,
-    tcgdex_set_id,
+    source_id,
   };
 }
