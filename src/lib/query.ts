@@ -36,11 +36,13 @@ const CARD_ID = /^([\p{L}\p{N}.]*\d[\p{L}\p{N}.]*)-(\d+[a-z]?)$/iu;
 
 /**
  * A canonical card UID. New form: '<game>:<language>:<set>#<number>[#parallel]'
- * e.g. "pokemon:en:bs#4". Legacy form without game ("en:bs#4") is still
- * accepted so older grading records keep working during migration.
+ * e.g. "pokemon:en:bs#4", "mtg:zhs:lea#1", "sports:en:set#38#haloref".
+ * Language is 2–3 letters, optionally hyphenated (`zh-cn`, `pt-br`).
+ * Legacy form without game ("en:bs#4") is still accepted so older grading
+ * records keep working during migration.
  */
 const CANONICAL_UID =
-  /^(?:[a-z][a-z0-9]*:)?[a-z]{2}(?:-[a-z]{2})?:[^\s#]+#\S+$/i;
+  /^(?:[a-z][a-z0-9]*:)?[a-z]{2,3}(?:-[a-z]{2,4})?:[^\s#]+#\S+$/i;
 
 /** Digits only, so unambiguously a collector number. */
 const PURE_NUMBER = /^\d{1,5}$/;

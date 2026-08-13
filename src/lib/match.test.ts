@@ -32,12 +32,20 @@ describe("matchCards", () => {
   });
 
   it("resolves a set abbreviation plus a number", () => {
-    const result = matchCards(db, { query: "BS 4", language: "en" });
+    const result = matchCards(db, { query: "BS 4", language: "en", game: "pokemon" });
 
     expect(result.unambiguous).toBe(true);
     expect(result.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
     expect(result.interpretation.number).toBe("4");
     expect(result.interpretation.sets[0].token).toBe("BS");
+  });
+
+  it("scopes the same set code to a different game", () => {
+    const result = matchCards(db, { query: "BS 4", language: "en", game: "mtg" });
+
+    expect(result.unambiguous).toBe(true);
+    expect(result.candidates[0].card.card_uid).toBe("mtg:en:bs#4");
+    expect(result.candidates[0].card.name).toBe("Spell Queller");
   });
 
   it("tells a set code apart from a collector number", () => {
@@ -120,6 +128,7 @@ describe("matchCards", () => {
 
     expect(result.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
     expect(result.unambiguous).toBe(true);
+    expect(result.candidates.every((c) => c.card.game === "pokemon")).toBe(true);
   });
 
   it("does not guess when a bare number is all it has", () => {
@@ -213,7 +222,20 @@ describe("resolveSetTokens", () => {
   it("resolves abbreviations, set IDs, set names and aliases", () => {
     const db = buildTestCatalog();
 
-    expect(resolveSetTokens(db, ["BS"])[0].setUids.sort()).toEqual(["pokemon:de:bs", "pokemon:en:bs", "pokemon:en:bs-1999", "pokemon:fr:bs"]);
+    expect(resolveSetTokens(db, ["BS"])[0].setUids.sort()).toEqual([
+      "mtg:en:bs",
+      "pokemon:de:bs",
+      "pokemon:en:bs",
+      "pokemon:en:bs-1999",
+      "pokemon:fr:bs",
+    ]);
+    expect(resolveSetTokens(db, ["BS"], "mtg")[0].setUids).toEqual(["mtg:en:bs"]);
+    expect(resolveSetTokens(db, ["BS"], "pokemon")[0].setUids.sort()).toEqual([
+      "pokemon:de:bs",
+      "pokemon:en:bs",
+      "pokemon:en:bs-1999",
+      "pokemon:fr:bs",
+    ]);
     expect(resolveSetTokens(db, ["base5"])[0].setUids).toEqual(["pokemon:en:tr"]);
     expect(resolveSetTokens(db, ["team rocket"])[0].setUids).toEqual(["pokemon:en:tr"]);
     expect(resolveSetTokens(db, ["Triplet Beat"])[0].setUids).toEqual(["pokemon:ja:sv1a"]);

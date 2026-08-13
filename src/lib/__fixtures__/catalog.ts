@@ -33,6 +33,7 @@ interface SetRow {
 
 const GAMES = [
   { code: "pokemon", name: "Pokémon TCG", kind: "tcg" },
+  { code: "mtg", name: "Magic: The Gathering", kind: "tcg" },
   { code: "sports", name: "Sports & Entertainment Cards", kind: "sports" },
 ];
 
@@ -57,6 +58,8 @@ const SETS: SetRow[] = [
   set("pokemon:de:bs", "pokemon", "de", "Grundset", null, "BS", "1999-01-09", 102, "base1"),
   set("pokemon:en:b2", "pokemon", "en", "Base Set 2", "Base Set 2", "B2", "2000-02-24", 130, "base4"),
   set("pokemon:en:tr", "pokemon", "en", "Team Rocket", "Team Rocket", "TR", "2000-04-24", 82, "base5"),
+  // Same printed code as Pokémon Base Set — matching must be scoped by game.
+  set("mtg:en:bs", "mtg", "en", "Battlebond", "Battlebond", "BS", "2018-06-08", 254, "bbd"),
   set("pokemon:ja:sv1a", "pokemon", "ja", "トリプレットビート", "Triplet Beat", "SV1a", "2023-03-10", 73, "SV1a"),
   set("pokemon:zh-cn:csve2c", "pokemon", "zh-cn", "对战派对 耀梦", "Battle Party: Shining Dream", "CSVE2C", "2024-05-01", null, null),
   set(
@@ -111,6 +114,7 @@ const CARDS: CardRow[] = [
   { set_uid: "pokemon:de:bs", number: "4", name: "Glurak", name_en: "Charizard", card_id: "base1-4" },
   { set_uid: "pokemon:en:b2", number: "4", name: "Charizard", name_en: null, card_id: "base4-4" },
   { set_uid: "pokemon:en:tr", number: "4", name: "Dark Charizard", name_en: null, card_id: "base5-4" },
+  { set_uid: "mtg:en:bs", number: "4", name: "Spell Queller", name_en: null, card_id: "bbd-4" },
   { set_uid: "pokemon:ja:sv1a", number: "001", name: "トロピウス", name_en: "Tropius", card_id: "SV1a-001" },
   { set_uid: "pokemon:ja:sv1a", number: "013", name: "メガリザードンXex", name_en: null, card_id: "SV1a-013" },
   { set_uid: "pokemon:zh-cn:csve2c", number: "001", name: "妙蛙种子", name_en: "Bulbasaur", card_id: "uuid-bulbasaur" },

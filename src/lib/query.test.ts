@@ -30,6 +30,11 @@ describe("parseCardQuery", () => {
     expect(parseCardQuery("en:bs#4").cardId).toBe("en:bs#4");
     expect(parseCardQuery("pokemon:en:bs#4").cardId).toBe("pokemon:en:bs#4");
     expect(parseCardQuery("zh-cn:csve2c#001").cardId).toBe("zh-cn:csve2c#001");
+    expect(parseCardQuery("mtg:zhs:lea#1").cardId).toBe("mtg:zhs:lea#1");
+    expect(parseCardQuery("sports:en:set#38#haloref").cardId).toBe(
+      "sports:en:set#38#haloref"
+    );
+    expect(parseCardQuery("sports:und:set#38").cardId).toBe("sports:und:set#38");
   });
 
   it("does not mistake a hyphenated name for a card ID", () => {

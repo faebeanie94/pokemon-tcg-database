@@ -106,6 +106,9 @@ LANGUAGES: list[dict[str, str | None]] = [
     {"code": "ph", "name_en": "Phyrexian", "name_native": "Phyrexian", "region": None},
     {"code": "qya", "name_en": "Quenya", "name_native": "Quenya", "region": None},
     {"code": "dw", "name_en": "Dwarvish", "name_native": "Dwarvish", "region": None},
+    # Language-neutral: sports and other catalogs with no translation axis.
+    # Sports rows still use 'en' when the printed label is English.
+    {"code": "und", "name_en": "Undetermined", "name_native": None, "region": None},
 ]
 
 LANGUAGE_CODES = [lang["code"] for lang in LANGUAGES]

@@ -6,6 +6,7 @@ import {
   countCards,
   getCard,
   isIndexStale,
+  listGames,
   listLanguages,
   listSets,
   searchCards,
@@ -46,6 +47,13 @@ describe("searchCards", () => {
     expect(searchCards(db, { set: "B2" }).total).toBe(1);
     expect(searchCards(db, { set: "base5" }).total).toBe(1);
     expect(searchCards(db, { set: "team rocket" }).total).toBe(1);
+  });
+
+  it("scopes search to a game so shared set codes do not collide", () => {
+    const pokemon = searchCards(db, { set: "BS", game: "pokemon", language: "en", number: "4" });
+    const mtg = searchCards(db, { set: "BS", game: "mtg", language: "en", number: "4" });
+    expect(pokemon.cards.map((c) => c.card_uid)).toEqual(["pokemon:en:bs#4"]);
+    expect(mtg.cards.map((c) => c.card_uid)).toEqual(["mtg:en:bs#4"]);
   });
 
   it("filters by collector number regardless of padding", () => {
@@ -97,12 +105,13 @@ describe("catalog metadata", () => {
 
   it("lists sets and filters them by language", () => {
     const db = buildTestCatalog();
-    expect(listSets(db, {}).length).toBe(10);
+    expect(listSets(db, {}).length).toBe(11);
     expect(
       listSets(db, { language: "en" })
         .map((s) => s.set_uid)
         .sort()
     ).toEqual([
+      "mtg:en:bs",
       "pokemon:en:b2",
       "pokemon:en:bs",
       "pokemon:en:bs-1999",
@@ -115,6 +124,14 @@ describe("catalog metadata", () => {
         .map((s) => s.set_uid)
         .sort()
     ).toEqual(["pokemon:en:b2", "pokemon:en:bs", "pokemon:en:bs-1999", "pokemon:en:tr"]);
+    expect(listSets(db, { game: "mtg" }).map((s) => s.set_uid)).toEqual(["mtg:en:bs"]);
+  });
+
+  it("lists games with card counts", () => {
+    const games = listGames(buildTestCatalog());
+    expect(games.map((g) => g.game).sort()).toEqual(["mtg", "pokemon", "sports"]);
+    expect(games.find((g) => g.game === "mtg")?.kind).toBe("tcg");
+    expect(games.find((g) => g.game === "sports")?.kind).toBe("sports");
   });
 
   it("finds a set by code or name fragment", () => {

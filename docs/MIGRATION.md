@@ -12,10 +12,13 @@ en:bs#4
 ```
 <game>:<language>:<set_slug>#<number>
 pokemon:en:bs#4
+mtg:zhs:lea#1
 
 # with parallel / variant:
 sports:en:202526toppsmanchesterunitedteamset#38#haloref
 ```
+
+Language is 2–3 letters (`en`, `zhs`, `und`), optionally hyphenated (`zh-cn`).
 
 ## Impact
 

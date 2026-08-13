@@ -91,7 +91,7 @@ No catalog APIs; same curated JSON/xlsx approach when operators need them:
 | "All languages" for Pokémon | TCGdex (16 languages in this repo) |
 | "All languages" for Yu-Gi-Oh | YGOPRODeck: five Western languages only |
 | Bandai games | English-first; Japanese via official sites (not automated here) |
-| Sports cards | Typically English labels; language axis is secondary |
+| Sports cards | Typically English labels (`en`); `und` exists for language-neutral rows |
 
 ## Licensing
 

@@ -50,19 +50,23 @@ TCGCSV walks are opt-in. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 - **Do not delete `data/`.** It holds `data/raw/` fetches and
   `data/raw/sports/seed.json` (curated sports checklists). Removing raw TCGdex
   dumps silently shrinks the Pokémon catalog until `pokedb fetch` runs again.
-- **Games are first-class.** Schema has a `games` table; `sets.game` /
-  `cards.game` scope identity and matching. Sports fields include
-  `manufacturer`, `sport`, `product_year`, `subject_name`, `parallel`,
-  `notations`, `serial_number`, `print_run`, `display_name`.
+- **Games are first-class.** Schema has a `games` table (`kind`: `tcg` /
+  `sports` / `non_sport`); `sets.game` / `cards.game` scope identity and
+  matching. Sports fields include `manufacturer`, `sport`, `product_year`,
+  `subject_name`, `parallel`, `notations`, `serial_number`, `print_run`,
+  `display_name`. Language `und` is the language-neutral row; sports checklists
+  still use `en` when the printed label is English.
 - **Source IDs are generic.** Use `set_source_ids(set_uid, source, source_id)`
-  instead of hard-coded `tcgdex_set_id` / `pikaqian_set_id` columns.
+  instead of hard-coded `tcgdex_set_id` / `pikaqian_set_id` columns. The match
+  index also tokens `set_sources.source_set_id`.
 - **Card identity is `card_uid`**,
   `'<game>:<language>:<set slug>#<number>[#<parallel>]'` such as
-  `pokemon:en:bs#4` or
+  `pokemon:en:bs#4`, `mtg:zhs:lea#1`, or
   `sports:en:202526toppsmanchesterunitedteamset#38#haloref`.
-  Legacy UIDs without the game prefix (`en:bs#4`) are still accepted by the
-  matcher during migration. Grading records should store the new form going
-  forward. See [docs/MIGRATION.md](docs/MIGRATION.md).
+  Language may be 2–3 letters (`zhs`, `und`). Legacy UIDs without the game
+  prefix (`en:bs#4`) are still accepted by the matcher during migration.
+  Grading records should store the new form going forward. See
+  [docs/MIGRATION.md](docs/MIGRATION.md).
 - **Sports grading format** (operator / API fields): set name, card name line
   (subject + parallel + notations + optional `09/15` serial), number. The
   `09/15` serial is a print run, **not** a Pokémon-style printed total — see

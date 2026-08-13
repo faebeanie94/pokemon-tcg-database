@@ -509,6 +509,8 @@ function gatherCandidates(db: Database, signals: Signals): CatalogCard[] {
 
   if (cardId) {
     const wanted = cardId.toLowerCase();
+    // Legacy UIDs (`en:bs#4`) remap to the Pokémon form (`pokemon:en:bs#4`).
+    // A suffix LIKE would also hit `mtg:en:bs#4` for the same leftover.
     found.push(
       ...(db
         .prepare(
@@ -516,7 +518,7 @@ function gatherCandidates(db: Database, signals: Signals): CatalogCard[] {
             WHERE (
               lower(c.card_id) = ?
               OR lower(c.card_uid) = ?
-              OR lower(c.card_uid) LIKE '%:' || ?
+              OR lower(c.card_uid) = 'pokemon:' || ?
             )${gameClause}
             LIMIT ?`
         )

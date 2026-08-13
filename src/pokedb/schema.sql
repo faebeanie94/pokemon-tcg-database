@@ -19,7 +19,8 @@ DROP TABLE IF EXISTS build_info;
 CREATE TABLE games (
     code        TEXT PRIMARY KEY,   -- 'pokemon', 'mtg', 'sports', 'onepiece', ...
     name        TEXT NOT NULL,
-    kind        TEXT NOT NULL CHECK (kind IN ('tcg', 'sports', 'other'))
+    -- Category: tcg | sports | non_sport (Marvel TCs, Carddass, etc.)
+    kind        TEXT NOT NULL CHECK (kind IN ('tcg', 'sports', 'non_sport'))
 );
 
 CREATE TABLE languages (
@@ -44,10 +45,10 @@ CREATE TABLE sets (
     card_count_official INTEGER,           -- size of the printed set numbering
     card_count_total    INTEGER,           -- including secret rares
     card_count_loaded   INTEGER NOT NULL DEFAULT 0,
-    -- Sports-set fields (NULL for TCGs)
+    -- Sports-set fields (NULL for TCGs). product_year is the season string.
     manufacturer        TEXT,              -- Topps, Panini, Upper Deck, Skybox, ...
     sport               TEXT,              -- soccer, football, wrestling, ufc, ...
-    product_year        TEXT,              -- '2025-26', '2024'
+    product_year        TEXT,              -- season: '2025-26', '2024'
     logo_url            TEXT,
     symbol_url          TEXT,
     sources             TEXT NOT NULL,
@@ -92,12 +93,14 @@ CREATE TABLE cards (
     card_type      TEXT,
     card_id        TEXT,              -- source identifier
     image_url      TEXT,
-    -- Sports-card fields (NULL for most TCGs)
-    subject_name   TEXT,              -- player / wrestler
+    -- Sports-card fields (NULL for most TCGs).
+    -- subject_name / notations / print_run are the grading-label parts;
+    -- serial is instance data and is not part of card_uid.
+    subject_name   TEXT,              -- player / wrestler (grading 'subject')
     parallel       TEXT,              -- 'HALO REF', 'RUBY REF'
-    notations      TEXT,              -- comma-separated: AUTO,RC,SP
+    notations      TEXT,              -- comma-separated flags: AUTO,RC,SP
     serial_number  TEXT,              -- '09' when known
-    print_run      INTEGER,           -- 15 when known from 09/15
+    print_run      INTEGER,           -- serial total (15 from 09/15)
     display_name   TEXT,              -- full graded label line
     sources        TEXT NOT NULL
 );

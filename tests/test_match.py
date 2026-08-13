@@ -198,3 +198,12 @@ def test_cards_for_an_unknown_set_are_reported_not_dropped_silently():
 
     assert rows == []
     assert len(orphans) == 1
+
+
+def test_language_table_includes_scryfall_codes_and_undetermined():
+    from pokedb.config import LANGUAGE_CODES
+
+    assert "zhs" in LANGUAGE_CODES
+    assert "zht" in LANGUAGE_CODES
+    assert "und" in LANGUAGE_CODES
+    assert "en" in LANGUAGE_CODES

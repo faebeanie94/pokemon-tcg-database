@@ -249,6 +249,9 @@ export function buildMatchIndex(db: Database): IndexStats {
       SELECT s.set_uid, s.game, norm_name(i.source_id),             'source_id'
         FROM sets s JOIN set_source_ids i ON i.set_uid = s.set_uid
       UNION ALL
+      SELECT s.set_uid, s.game, norm_name(ss.source_set_id),        'source_id'
+        FROM sets s JOIN set_sources ss ON ss.set_uid = s.set_uid
+      UNION ALL
       SELECT set_uid, game, norm_name(set_uid),                     'uid'           FROM sets
       UNION ALL
       -- set_uid is '<game>:<language>:<code>'; expose the trailing code alone.
