@@ -7,6 +7,9 @@ lower-cased Chinese set codes (``csm1cc``). Codes are therefore folded to a
 common form and compared first; set names are used as a fallback, guarded by
 release year so unrelated sets with similar names are never merged.
 
+Matching is scoped by **game** and language so a Magic set coded ``BS`` never
+collides with Pokémon Base Set.
+
 A source may only contribute one row to a canonical set. That keeps genuinely
 distinct printings that share a code (``Base Set`` and ``Base Set
 (Shadowless)`` are both ``BS``) as separate rows.
@@ -32,8 +35,22 @@ NAME = "name"
 MAX_YEAR_GAP = {CODE: 3, NAME: 2}
 
 
+def parallel_slug(parallel: str | None) -> str | None:
+    """Fold a parallel label into a stable card_uid segment."""
+    if not parallel:
+        return None
+    return slugify(parallel, fallback="") or None
+
+
+def make_card_uid(set_uid: str, number: str, parallel: str | None = None) -> str:
+    base = f"{set_uid}#{number}"
+    slug = parallel_slug(parallel)
+    return f"{base}#{slug}" if slug else base
+
+
 @dataclass
 class CanonicalSet:
+    game: str
     language: str
     set_uid: str = ""
     records: dict[str, SetRecord] = field(default_factory=dict)
@@ -74,13 +91,15 @@ class CanonicalSet:
 
 
 class SetRegistry:
-    """Groups incoming SetRecords into canonical sets, one per language."""
+    """Groups incoming SetRecords into canonical sets, one per game+language."""
 
     def __init__(self, source_order: list[str]) -> None:
         self.source_order = source_order
         self.canonical: list[CanonicalSet] = []
-        self._by_key: dict[tuple[str, str, str], CanonicalSet] = {}
-        self._by_source_set: dict[tuple[str, str, str], CanonicalSet] = {}
+        # (game, language, kind, key) -> CanonicalSet
+        self._by_key: dict[tuple[str, str, str, str], CanonicalSet] = {}
+        # (source, game, language, code) -> CanonicalSet
+        self._by_source_set: dict[tuple[str, str, str, str], CanonicalSet] = {}
         self.notes: list[str] = []
 
     def add(self, record: SetRecord) -> CanonicalSet:
@@ -91,17 +110,22 @@ class SetRegistry:
 
         target, matched_by = self._find(record, code_keys, name_keys)
         if target is None:
-            target = CanonicalSet(language=record.language)
+            target = CanonicalSet(game=record.game, language=record.language)
             self.canonical.append(target)
             matched_by = "seed"
 
         target.add(record, matched_by)
         for key in code_keys:
-            self._by_key.setdefault((record.language, CODE, key), target)
+            self._by_key.setdefault((record.game, record.language, CODE, key), target)
         for key in name_keys:
-            self._by_key.setdefault((record.language, NAME, key), target)
+            self._by_key.setdefault((record.game, record.language, NAME, key), target)
         if record.source_set_id:
-            source_key = (record.source, record.language, normalize_code(record.source_set_id) or "")
+            source_key = (
+                record.source,
+                record.game,
+                record.language,
+                normalize_code(record.source_set_id) or "",
+            )
             self._by_source_set.setdefault(source_key, target)
         return target
 
@@ -111,13 +135,13 @@ class SetRegistry:
         year = release_year(record.release_date)
         for kind, keys in ((CODE, code_keys), (NAME, name_keys)):
             for key in keys:
-                candidate = self._by_key.get((record.language, kind, key))
+                candidate = self._by_key.get((record.game, record.language, kind, key))
                 if candidate is None or candidate.has_source(record.source):
                     continue
                 if self._year_conflict(year, candidate.years, MAX_YEAR_GAP[kind]):
                     self.notes.append(
-                        f"{kind} match '{key}' rejected on release year: {record.language} "
-                        f"'{record.display_name}' ({record.release_date}) vs "
+                        f"{kind} match '{key}' rejected on release year: {record.game}/"
+                        f"{record.language} '{record.display_name}' ({record.release_date}) vs "
                         f"'{candidate.display_name(self.source_order)}' "
                         f"({candidate.first(self.source_order, 'release_date')})"
                     )
@@ -141,13 +165,15 @@ class SetRegistry:
         date, they must be the same set.
         """
         merged = 0
-        by_date: dict[tuple[str, str], list[CanonicalSet]] = {}
+        by_date: dict[tuple[str, str, str], list[CanonicalSet]] = {}
         for canonical in self.canonical:
             if len(canonical.records) != 1:
                 continue
             date = canonical.first(self.source_order, "release_date")
             if date and len(date) == 10:
-                by_date.setdefault((canonical.language, date), []).append(canonical)
+                by_date.setdefault((canonical.game, canonical.language, date), []).append(
+                    canonical
+                )
 
         for candidates in by_date.values():
             if len(candidates) != 2:
@@ -185,7 +211,7 @@ class SetRegistry:
                 or canonical.first(self.source_order, "name")
                 or "set"
             )
-            base = f"{canonical.language}:{slugify(str(code))}"
+            base = f"{canonical.game}:{canonical.language}:{slugify(str(code))}"
             # Codes are reused across eras, so a colliding set is disambiguated
             # by its release year: that keeps identifiers stable between builds
             # regardless of the order the sources were processed in.
@@ -200,9 +226,11 @@ class SetRegistry:
             used.add(uid)
             canonical.set_uid = uid
 
-    def resolve_set_uid(self, source: str, language: str, source_set_id: str) -> str | None:
+    def resolve_set_uid(
+        self, source: str, game: str, language: str, source_set_id: str
+    ) -> str | None:
         canonical = self._by_source_set.get(
-            (source, language, normalize_code(source_set_id) or "")
+            (source, game, language, normalize_code(source_set_id) or "")
         )
         return canonical.set_uid if canonical else None
 
@@ -212,24 +240,33 @@ def merge_cards(
     registry: SetRegistry,
     source_order: list[str],
 ) -> tuple[list[dict], list[CardRecord]]:
-    """Collapse card rows onto canonical sets, one row per printed number."""
+    """Collapse card rows onto canonical sets.
+
+    One row per (set, number, parallel) — a base printing and its Halo Ref
+    parallel are distinct cards.
+    """
     order = {name: index for index, name in enumerate(source_order)}
-    merged: dict[tuple[str, str], dict] = {}
+    merged: dict[tuple[str, str, str], dict] = {}
     orphans: list[CardRecord] = []
 
     for record in sorted(cards, key=lambda item: order.get(item.source, len(order))):
-        set_uid = registry.resolve_set_uid(record.source, record.language, record.source_set_id)
+        set_uid = registry.resolve_set_uid(
+            record.source, record.game, record.language, record.source_set_id
+        )
         if set_uid is None:
             orphans.append(record)
             continue
 
         prefix, value = split_number(record.number)
-        merge_key = (set_uid, _number_key(record.number, prefix, value))
+        pslug = parallel_slug(record.parallel) or ""
+        merge_key = (set_uid, _number_key(record.number, prefix, value), pslug)
         existing = merged.get(merge_key)
         if existing is None:
+            display = record.display_name or record.name
             merged[merge_key] = {
-                "card_uid": f"{set_uid}#{record.number}",
+                "card_uid": make_card_uid(set_uid, record.number, record.parallel),
                 "set_uid": set_uid,
+                "game": record.game,
                 "language": record.language,
                 "number": record.number,
                 "number_prefix": prefix,
@@ -241,12 +278,29 @@ def merge_cards(
                 "card_type": record.card_type,
                 "card_id": record.card_id,
                 "image_url": record.image_url,
+                "subject_name": record.subject_name,
+                "parallel": record.parallel,
+                "notations": record.notations,
+                "serial_number": record.serial_number,
+                "print_run": record.print_run,
+                "display_name": display,
                 "sources": record.source,
             }
             continue
 
-        for attribute in ("name_en", "rarity", "card_type", "card_id", "image_url"):
-            if not existing[attribute]:
+        for attribute in (
+            "name_en",
+            "rarity",
+            "card_type",
+            "card_id",
+            "image_url",
+            "subject_name",
+            "notations",
+            "serial_number",
+            "print_run",
+            "display_name",
+        ):
+            if not existing.get(attribute):
                 existing[attribute] = getattr(record, attribute)
                 if attribute == "name_en" and existing[attribute]:
                     existing["name_en_source"] = "source"

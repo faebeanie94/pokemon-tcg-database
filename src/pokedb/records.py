@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 class SetRecord:
     source: str
     language: str
+    game: str = "pokemon"
     source_set_id: str | None = None
     name: str | None = None          # name in the language of the set
     name_en: str | None = None       # English name or translation
@@ -20,6 +21,9 @@ class SetRecord:
     card_count_total: int | None = None
     logo_url: str | None = None
     symbol_url: str | None = None
+    manufacturer: str | None = None
+    sport: str | None = None
+    product_year: str | None = None
 
     @property
     def display_name(self) -> str:
@@ -33,11 +37,18 @@ class CardRecord:
     source_set_id: str
     number: str
     name: str
+    game: str = "pokemon"
     name_en: str | None = None
     rarity: str | None = None
     card_type: str | None = None
     card_id: str | None = None
     image_url: str | None = None
+    subject_name: str | None = None
+    parallel: str | None = None
+    notations: str | None = None
+    serial_number: str | None = None
+    print_run: int | None = None
+    display_name: str | None = None
 
 
 @dataclass(slots=True)

@@ -19,20 +19,29 @@ import { isTrigramSearchable } from "./query";
  */
 
 export interface CatalogCard {
-  /** Stable canonical identifier, '<language>:<set code>#<number>'. */
+  /** Stable canonical identifier, '<game>:<language>:<set>#<number>[#parallel]'. */
   card_uid: string;
   set_uid: string;
+  game: string;
   language: string;
   set_name: string;
   set_name_en: string | null;
   /** Set code as printed, e.g. 'BS' or 'CSVE2C'. */
   set_code: string | null;
   series_name: string | null;
+  manufacturer: string | null;
+  sport: string | null;
   /** The denominator printed on the card: the 102 in '4/102'. */
   printed_total: number | null;
   card_number: string;
   name: string;
   english_name: string | null;
+  subject_name: string | null;
+  parallel: string | null;
+  notations: string | null;
+  serial_number: string | null;
+  print_run: number | null;
+  display_name: string | null;
   /** Identifier from the source that supplied the card, e.g. 'base1-4'. */
   card_id: string | null;
   sources: string;
@@ -40,11 +49,15 @@ export interface CatalogCard {
 
 export interface CatalogSet {
   set_uid: string;
+  game: string;
   language: string;
   set_name: string;
   set_name_en: string | null;
   set_code: string | null;
   series_name: string | null;
+  manufacturer: string | null;
+  sport: string | null;
+  product_year: string | null;
   release_date: string | null;
   printed_total: number | null;
   card_count_total: number | null;
@@ -57,18 +70,20 @@ export interface CatalogSet {
  * language uniformly.
  */
 const CARD_FIELDS = `
-  c.card_uid, c.set_uid, c.language,
+  c.card_uid, c.set_uid, c.game, c.language,
   s.name AS set_name, s.name_en AS set_name_en, s.abbreviation AS set_code,
-  s.series_name, s.card_count_official AS printed_total,
+  s.series_name, s.manufacturer, s.sport,
+  s.card_count_official AS printed_total,
   c.number AS card_number, c.name,
   COALESCE(c.name_en, CASE WHEN c.language = 'en' THEN c.name END) AS english_name,
-  c.card_id, c.sources`;
+  c.subject_name, c.parallel, c.notations, c.serial_number, c.print_run,
+  c.display_name, c.card_id, c.sources`;
 
 const FROM_CARDS = "cards c JOIN sets s ON s.set_uid = c.set_uid";
 
 /** Printed numbers sort naturally with the prefix/value columns the build derives. */
 const CARD_ORDER =
-  "s.language, s.name, COALESCE(c.number_prefix, ''), COALESCE(c.number_value, 999999)";
+  "s.game, s.language, s.name, COALESCE(c.number_prefix, ''), COALESCE(c.number_value, 999999)";
 
 /**
  * Exposes the app's normalizers to SQL so the index is built with the same code
@@ -161,10 +176,14 @@ export function buildMatchIndex(db: Database): IndexStats {
     -- Normalized comparison keys, so padded and unpadded numbers and accented
     -- and plain spellings compare equal.
     CREATE TABLE match_cards (
-      card_uid     TEXT PRIMARY KEY,
-      name_norm    TEXT NOT NULL,
-      name_en_norm TEXT,
-      number_norm  TEXT NOT NULL
+      card_uid       TEXT PRIMARY KEY,
+      game           TEXT NOT NULL,
+      name_norm      TEXT NOT NULL,
+      name_en_norm   TEXT,
+      subject_norm   TEXT,
+      parallel_norm  TEXT,
+      display_norm   TEXT,
+      number_norm    TEXT NOT NULL
     );
 
     -- Every way a set can be referred to: printed code, canonical UID, the
@@ -172,6 +191,7 @@ export function buildMatchIndex(db: Database): IndexStats {
     -- which is what lets "BS", "base1" and "Base Set" all resolve.
     CREATE TABLE match_sets (
       set_uid    TEXT NOT NULL,
+      game       TEXT NOT NULL,
       token_norm TEXT NOT NULL,
       kind       TEXT NOT NULL,
       PRIMARY KEY (set_uid, token_norm)
@@ -183,46 +203,69 @@ export function buildMatchIndex(db: Database): IndexStats {
     -- makes partial Japanese and Chinese names findable; a word tokenizer
     -- cannot split CJK text.
     CREATE VIRTUAL TABLE cards_fts USING fts5(
-      card_uid UNINDEXED, name, name_en, set_name, tokenize='trigram'
+      card_uid UNINDEXED, name, name_en, subject_name, display_name, set_name,
+      tokenize='trigram'
     );
   `);
 
   db.exec(`
-    INSERT INTO match_cards (card_uid, name_norm, name_en_norm, number_norm)
+    INSERT INTO match_cards (
+      card_uid, game, name_norm, name_en_norm, subject_norm, parallel_norm,
+      display_norm, number_norm
+    )
     SELECT c.card_uid,
+           c.game,
            norm_name(c.name),
            CASE
              WHEN c.name_en IS NOT NULL THEN norm_name(c.name_en)
              WHEN c.language = 'en' THEN norm_name(c.name)
            END,
+           norm_name(c.subject_name),
+           norm_name(c.parallel),
+           norm_name(COALESCE(c.display_name, c.name)),
            norm_number(c.number)
       FROM cards c;
 
-    INSERT OR IGNORE INTO match_sets (set_uid, token_norm, kind)
-    SELECT set_uid, token_norm, kind FROM (
-      SELECT set_uid, norm_name(abbreviation)  AS token_norm, 'code'      AS kind FROM sets
+    INSERT OR IGNORE INTO match_sets (set_uid, game, token_norm, kind)
+    SELECT set_uid, game, token_norm, kind FROM (
+      SELECT set_uid, game, norm_name(abbreviation)  AS token_norm, 'code' AS kind FROM sets
       UNION ALL
-      SELECT set_uid, norm_name(name),                        'name'            FROM sets
+      SELECT set_uid, game, norm_name(name),                        'name'          FROM sets
       UNION ALL
-      SELECT set_uid, norm_name(name_en),                     'name_en'         FROM sets
+      SELECT set_uid, game, norm_name(name_en),                     'name_en'       FROM sets
       UNION ALL
-      SELECT set_uid, norm_name(tcgdex_set_id),               'source_id'       FROM sets
+      SELECT set_uid, game, norm_name(manufacturer),                'manufacturer'  FROM sets
       UNION ALL
-      SELECT set_uid, norm_name(pikaqian_set_id),             'source_id'       FROM sets
+      SELECT s.set_uid, s.game, norm_name(i.source_id),             'source_id'
+        FROM sets s JOIN set_source_ids i ON i.set_uid = s.set_uid
       UNION ALL
-      SELECT set_uid, norm_name(set_uid),                     'uid'             FROM sets
+      SELECT set_uid, game, norm_name(set_uid),                     'uid'           FROM sets
       UNION ALL
-      -- set_uid is '<language>:<code>', and the code alone is what a grader reads.
-      SELECT set_uid, norm_name(substr(set_uid, instr(set_uid, ':') + 1)), 'code' FROM sets
+      -- set_uid is '<game>:<language>:<code>'; expose the trailing code alone.
+      SELECT set_uid, game, norm_name(
+               CASE
+                 WHEN instr(substr(set_uid, instr(set_uid, ':') + 1), ':') > 0
+                 THEN substr(
+                        substr(set_uid, instr(set_uid, ':') + 1),
+                        instr(substr(set_uid, instr(set_uid, ':') + 1), ':') + 1
+                      )
+                 ELSE substr(set_uid, instr(set_uid, ':') + 1)
+               END
+             ), 'code'
+        FROM sets
     ) WHERE token_norm IS NOT NULL AND token_norm != '';
 
-    CREATE INDEX idx_match_cards_name    ON match_cards (name_norm);
-    CREATE INDEX idx_match_cards_name_en ON match_cards (name_en_norm);
-    CREATE INDEX idx_match_cards_number  ON match_cards (number_norm);
-    CREATE INDEX idx_match_sets_token    ON match_sets (token_norm);
+    CREATE INDEX idx_match_cards_name     ON match_cards (name_norm);
+    CREATE INDEX idx_match_cards_name_en  ON match_cards (name_en_norm);
+    CREATE INDEX idx_match_cards_subject  ON match_cards (subject_norm);
+    CREATE INDEX idx_match_cards_parallel ON match_cards (parallel_norm);
+    CREATE INDEX idx_match_cards_number   ON match_cards (number_norm);
+    CREATE INDEX idx_match_cards_game     ON match_cards (game);
+    CREATE INDEX idx_match_sets_token     ON match_sets (token_norm);
+    CREATE INDEX idx_match_sets_game      ON match_sets (game);
 
-    INSERT INTO cards_fts (card_uid, name, name_en, set_name)
-    SELECT c.card_uid, c.name, c.name_en, s.name
+    INSERT INTO cards_fts (card_uid, name, name_en, subject_name, display_name, set_name)
+    SELECT c.card_uid, c.name, c.name_en, c.subject_name, c.display_name, s.name
       FROM cards c JOIN sets s ON s.set_uid = c.set_uid;
   `);
 
@@ -253,6 +296,7 @@ export function getCard(db: Database, cardUid: string): CatalogCard | undefined 
 export interface SearchFilters {
   /** Free text, matched against card name, English name and set name. */
   q?: string;
+  game?: string;
   language?: string;
   /** Set code, canonical UID, source ID or name. */
   set?: string;
@@ -302,6 +346,10 @@ export function searchCards(db: Database, filters: SearchFilters = {}): SearchRe
   if (filters.language?.trim()) {
     clauses.push("c.language = @language");
     params.language = filters.language.trim();
+  }
+  if (filters.game?.trim()) {
+    clauses.push("c.game = @game");
+    params.game = filters.game.trim();
   }
   if (filters.set?.trim()) {
     clauses.push(
@@ -356,7 +404,7 @@ export function listLanguages(
 
 export function listSets(
   db: Database,
-  filters: { language?: string; q?: string; limit?: number } = {}
+  filters: { language?: string; game?: string; q?: string; limit?: number } = {}
 ): CatalogSet[] {
   requireCatalog(db);
   const clauses: string[] = [];
@@ -368,10 +416,14 @@ export function listSets(
     clauses.push("language = @language");
     params.language = filters.language.trim();
   }
+  if (filters.game?.trim()) {
+    clauses.push("game = @game");
+    params.game = filters.game.trim();
+  }
   if (filters.q?.trim()) {
     clauses.push(
       `(name LIKE @like OR name_en LIKE @like OR abbreviation LIKE @like
-        OR set_uid LIKE @like)`
+        OR set_uid LIKE @like OR manufacturer LIKE @like)`
     );
     params.like = `%${filters.q.trim()}%`;
   }
@@ -379,8 +431,9 @@ export function listSets(
   const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
   return db
     .prepare(
-      `SELECT set_uid, language, name AS set_name, name_en AS set_name_en,
-              abbreviation AS set_code, series_name, release_date,
+      `SELECT set_uid, game, language, name AS set_name, name_en AS set_name_en,
+              abbreviation AS set_code, series_name, manufacturer, sport,
+              product_year, release_date,
               card_count_official AS printed_total, card_count_total,
               card_count_loaded AS cards_loaded
        FROM sets ${where}
@@ -388,6 +441,22 @@ export function listSets(
        LIMIT @limit`
     )
     .all(params) as CatalogSet[];
+}
+
+export function listGames(
+  db: Database
+): { game: string; name: string; kind: string; card_count: number }[] {
+  requireCatalog(db);
+  return db
+    .prepare(
+      `SELECT g.code AS game, g.name, g.kind,
+              COALESCE(COUNT(c.card_uid), 0) AS card_count
+         FROM games g
+         LEFT JOIN cards c ON c.game = g.code
+        GROUP BY g.code, g.name, g.kind
+        ORDER BY card_count DESC, g.name`
+    )
+    .all() as { game: string; name: string; kind: string; card_count: number }[];
 }
 
 export function countCards(db: Database): number {

@@ -59,3 +59,22 @@ export function normalizeNumber(input: string | null | undefined): string {
 export function normalizeSetToken(input: string | null | undefined): string {
   return normalizeName(input);
 }
+
+/**
+ * Sports card numbers like "SSL-SM" must keep their letter groups intact.
+ * Hyphens are dropped for comparison, but letters are not stripped the way a
+ * pure digit normalizer might imply — same NFKC + letter/digit keep as
+ * normalizeNumber, which already preserves "SSLSM" from "SSL-SM".
+ *
+ * Exposed separately so sports matching can document the intent.
+ */
+export function normalizeSportsNumber(input: string | null | undefined): string {
+  return normalizeNumber(input);
+}
+
+/**
+ * Fold a parallel label ("HALO REF.", "Ruby Ref") for comparison / card_uid.
+ */
+export function normalizeParallel(input: string | null | undefined): string {
+  return normalizeName(input);
+}

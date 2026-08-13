@@ -1,9 +1,9 @@
 """Write the Excel workbook (and optional CSVs) from the built database.
 
-The workbook is the deliverable: one file holding every set and card in every
-language, with an autofilter on each sheet so a card can be found by set name,
-number or card name. It is regenerated from scratch on every update, so edits
-belong in the source spreadsheets rather than in the output file.
+The workbook is the deliverable: one file holding every set and card across
+games and languages, with an autofilter on each sheet so a card can be found
+by game, set name, number or card name. It is regenerated from scratch on
+every update.
 """
 
 from __future__ import annotations
@@ -15,16 +15,25 @@ from pathlib import Path
 
 from .config import DB_PATH, EXPORTS
 
-WORKBOOK_NAME = "Pokemon_TCG_Card_Database.xlsx"
+WORKBOOK_NAME = "Card_Database.xlsx"
 
-# The four fields the workbook is built around - set name, card number, card
-# name and release year - come first; the rest is context for non-Latin sets.
 CARD_QUERY = """
 SELECT
+    game_name            AS "Game",
     language_name        AS "Language",
     set_name             AS "Set Name",
     card_number          AS "Card Number",
-    card_name            AS "Card Name",
+    COALESCE(display_name, card_name) AS "Card Name",
+    subject_name         AS "Subject",
+    parallel             AS "Parallel",
+    notations            AS "Notations",
+    CASE
+      WHEN serial_number IS NOT NULL AND print_run IS NOT NULL
+      THEN serial_number || '/' || print_run
+    END                  AS "Serial",
+    manufacturer         AS "Manufacturer",
+    sport                AS "Sport",
+    product_year         AS "Season",
     release_year         AS "Year",
     set_name_en          AS "Set Name (EN)",
     card_name_en         AS "Card Name (EN)",
@@ -32,26 +41,34 @@ SELECT
     release_date         AS "Release Date",
     card_count           AS "Cards In Set"
 FROM (
-    SELECT c.language, l.name_en AS language_name, s.name AS set_name,
-           s.name_en AS set_name_en, s.abbreviation AS set_abbreviation,
-           s.release_date, s.release_year, c.number AS card_number,
-           c.number_prefix, c.number_value, c.name AS card_name,
-           c.name_en AS card_name_en,
+    SELECT c.game, g.name AS game_name, c.language, l.name_en AS language_name,
+           s.name AS set_name, s.name_en AS set_name_en,
+           s.abbreviation AS set_abbreviation, s.release_date, s.release_year,
+           s.manufacturer, s.sport, s.product_year,
+           c.number AS card_number, c.number_prefix, c.number_value,
+           c.name AS card_name, c.name_en AS card_name_en,
+           c.subject_name, c.parallel, c.notations,
+           c.serial_number, c.print_run, c.display_name,
            COALESCE(s.card_count_official, s.card_count_loaded) AS card_count
     FROM cards c
     JOIN sets s      ON s.set_uid = c.set_uid
+    JOIN games g     ON g.code = c.game
     JOIN languages l ON l.code = c.language
 )
-ORDER BY language, COALESCE(release_date, '9999'), set_name,
+ORDER BY game, language, COALESCE(release_date, '9999'), set_name,
          COALESCE(number_prefix, ''), COALESCE(number_value, 999999), card_number
 """
 
 SET_QUERY = """
 SELECT
+    g.name                       AS "Game",
     l.name_en                    AS "Language",
     s.name                       AS "Set Name",
     s.name_en                    AS "Set Name (EN)",
     s.abbreviation               AS "Set Code",
+    s.manufacturer               AS "Manufacturer",
+    s.sport                      AS "Sport",
+    s.product_year               AS "Season",
     s.release_year               AS "Year",
     s.release_date               AS "Release Date",
     s.series_name                AS "Series",
@@ -59,8 +76,9 @@ SELECT
     s.card_count_loaded          AS "Cards Listed",
     s.sources                    AS "Sources"
 FROM sets s
+JOIN games g     ON g.code = s.game
 JOIN languages l ON l.code = s.language
-ORDER BY s.language, COALESCE(s.release_date, '9999'), s.name
+ORDER BY s.game, s.language, COALESCE(s.release_date, '9999'), s.name
 """
 
 COVERAGE_QUERY = """
@@ -68,6 +86,13 @@ SELECT language_name AS "Language", language AS "Code", sets AS "Sets",
        sets_with_cards AS "Sets With Cards", cards AS "Cards",
        first_release AS "First Release", latest_release AS "Latest Release"
 FROM coverage_by_language
+ORDER BY cards DESC, sets DESC
+"""
+
+GAME_COVERAGE_QUERY = """
+SELECT game_name AS "Game", game AS "Code", game_kind AS "Kind",
+       sets AS "Sets", cards AS "Cards"
+FROM coverage_by_game
 ORDER BY cards DESC, sets DESC
 """
 
@@ -90,6 +115,7 @@ def export_all(db_path: Path = DB_PATH, write_csv: bool = True) -> list[Path]:
     card_headers, card_rows = _fetch(connection, CARD_QUERY)
     set_headers, set_rows = _fetch(connection, SET_QUERY)
     coverage_headers, coverage_rows = _fetch(connection, COVERAGE_QUERY)
+    game_headers, game_rows = _fetch(connection, GAME_COVERAGE_QUERY)
     built_at = connection.execute(
         "SELECT value FROM build_info WHERE key = 'built_at'"
     ).fetchone()
@@ -106,6 +132,8 @@ def export_all(db_path: Path = DB_PATH, write_csv: bool = True) -> list[Path]:
             set_rows,
             coverage_headers,
             coverage_rows,
+            game_headers,
+            game_rows,
             built_at[0] if built_at else "",
             sources[0] if sources else "",
         )
@@ -139,6 +167,8 @@ def _write_workbook(
     set_rows,
     coverage_headers,
     coverage_rows,
+    game_headers,
+    game_rows,
     built_at: str,
     sources: str,
 ) -> Path:
@@ -151,11 +181,13 @@ def _write_workbook(
     workbook.remove(workbook.active)
 
     widths = {
-        "Language": 20, "Set Name": 38, "Set Name (EN)": 38, "Card Name": 30,
-        "Card Name (EN)": 30, "Card Number": 14, "Year": 8, "Set Code": 12,
-        "Release Date": 14, "Cards In Set": 13, "Cards Listed": 13, "Series": 26,
-        "Sources": 30, "Code": 8, "Sets": 8, "Cards": 10, "Sets With Cards": 16,
-        "First Release": 14, "Latest Release": 14,
+        "Game": 22, "Language": 20, "Set Name": 42, "Set Name (EN)": 38,
+        "Card Name": 40, "Card Name (EN)": 30, "Card Number": 14, "Year": 8,
+        "Set Code": 12, "Release Date": 14, "Cards In Set": 13, "Cards Listed": 13,
+        "Series": 26, "Sources": 30, "Code": 12, "Sets": 8, "Cards": 10,
+        "Sets With Cards": 16, "First Release": 14, "Latest Release": 14,
+        "Subject": 28, "Parallel": 18, "Notations": 14, "Serial": 12,
+        "Manufacturer": 14, "Sport": 12, "Season": 12, "Kind": 10,
     }
 
     def add_sheet(title: str, headers: list[str], rows) -> None:
@@ -175,39 +207,37 @@ def _write_workbook(
     add_sheet("Cards", card_headers, card_rows)
     add_sheet("Sets", set_headers, set_rows)
     add_sheet("Coverage", coverage_headers, coverage_rows)
+    add_sheet("By Game", game_headers, game_rows)
 
     about = workbook.create_sheet("About")
     about.column_dimensions["A"].width = 26
     about.column_dimensions["B"].width = 96
     notes = [
-        ("Pokemon TCG Card Database", ""),
+        ("Multi-game Card Database", ""),
         ("Generated", built_at),
         ("Sources", sources),
         ("Cards", f"{len(card_rows):,} rows"),
         ("Sets", f"{len(set_rows):,} rows"),
         ("", ""),
-        ("Sheets", "Cards = every card. Sets = every set. Coverage = totals per language."),
         (
-            "Finding a card",
-            "Use the filter arrows on row 1 of the Cards sheet: filter Language, then "
-            "Set Name (or Set Code), then Card Number.",
+            "Identity",
+            "card_uid is '<game>:<language>:<set>#<number>' and appends '#<parallel>' "
+            "when a parallel/variant is present.",
         ),
         (
-            "Card Number",
-            "The number exactly as printed on the card, including any prefix "
-            "(001, TG12, SWSH284). 'Cards In Set' is the printed set size, so a card "
-            "numbered above it is a secret rare.",
-        ),
-        (
-            "Set Name (EN)",
-            "English name for sets printed in Japanese, Chinese, Korean and Thai, where "
-            "a translation is known.",
+            "Sports grading",
+            "Set name + card name/parallel + number. Serials like 09/15 are print runs, "
+            "not Pokémon-style printed totals.",
         ),
         (
             "Updating",
-            "Run `python -m pokedb update` (or the Update Database GitHub Action) to "
-            "rebuild this file from the latest data. The file is overwritten each time, "
-            "so keep corrections in the source spreadsheets, not here.",
+            "Run `python -m pokedb update` to rebuild. Fetch other sources with "
+            "`python -m pokedb fetch --source tcgcsv --game onepiece` etc.",
+        ),
+        (
+            "Licensing",
+            "Internal grading use only unless you hold redistribution rights from "
+            "Bandai/Konami/Wizards/Topps/Panini/etc.",
         ),
     ]
     for label, value in notes:
