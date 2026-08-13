@@ -1,7 +1,11 @@
 """Load TCGCSV nightly dumps (TCGplayer catalog mirror).
 
 Expects ``data/raw/tcgcsv/<game>/groups.json`` and per-group
-``products_<groupId>.json`` written by ``fetch_tcgcsv``.
+``products_<groupId>.json`` written by ``pokedb.fetch_tcgcsv`` or
+``apis/tcgcsv_fetch.py``.
+
+TCGCSV is English-market TCGplayer data only. Multilingual coverage needs
+Scryfall (MTG), YGOPRODeck (YGO Western langs), Lorcast, apitcg, etc.
 """
 
 from __future__ import annotations

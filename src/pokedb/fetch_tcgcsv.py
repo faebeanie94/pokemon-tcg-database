@@ -41,7 +41,9 @@ def fetch_game(game: str, *, delay: float = 0.35) -> int:
     return product_count
 
 
-def fetch_all(games: Iterable[str] | None = None) -> dict[str, int]:
+def fetch_all(
+    games: Iterable[str] | None = None, *, delay: float = 0.35
+) -> dict[str, int]:
     selected = list(games) if games else list(TCGCSV_CATEGORIES)
     unknown = [game for game in selected if game not in TCGCSV_CATEGORIES]
     if unknown:
@@ -50,6 +52,6 @@ def fetch_all(games: Iterable[str] | None = None) -> dict[str, int]:
     counts: dict[str, int] = {}
     for game in selected:
         print(f"  TCGCSV {game} (category {TCGCSV_CATEGORIES[game]})...")
-        counts[game] = fetch_game(game)
+        counts[game] = fetch_game(game, delay=delay)
         print(f"    {counts[game]} products")
     return counts

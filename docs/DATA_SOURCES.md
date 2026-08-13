@@ -43,7 +43,9 @@ pnpm build:index
 | Warhammer Age of Sigmar Champions | TCGCSV (cat 54) | Card game only — not miniatures |
 | Marvel Dice Masters | TCGCSV (cat 18) | Dice + cards, not Marvel trading cards |
 
-TCGCSV base: `https://tcgcsv.com/tcgplayer/` (no API key).
+TCGCSV base: `https://tcgcsv.com/tcgplayer/` (no API key). Fetch with
+`python3 apis/tcgcsv_fetch.py` or `PYTHONPATH=src python3 -m pokedb fetch --source tcgcsv`.
+**Limitation:** English-market TCGplayer catalog only — not a multilingual source.
 
 Spreadsheet exporters (optional, for offline / verify workflows):
 `apis/tcgcsv_export.py`, `apis/scryfall_export.py`, `apis/ygoprodeck_export.py`.

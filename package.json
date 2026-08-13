@@ -12,6 +12,7 @@
     "refresh:games": "PYTHONPATH=src python3 -m pokedb update --source tcgcsv --source ygoprodeck --source lorcast --source goagain --source apitcg && pnpm build:index",
     "fetch:mtg": "PYTHONPATH=src python3 -m pokedb fetch --source scryfall",
     "fetch:onepiece": "PYTHONPATH=src python3 -m pokedb fetch --source tcgcsv --game onepiece && PYTHONPATH=src python3 -m pokedb fetch --source apitcg --game onepiece",
+    "fetch:tcgcsv": "PYTHONPATH=src python3 apis/tcgcsv_fetch.py",
     "test": "vitest run",
     "test:watch": "vitest"
   },
