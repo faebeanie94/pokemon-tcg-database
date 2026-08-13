@@ -46,7 +46,32 @@ def main(argv: list[str] | None = None) -> int:
         help="limit TCGCSV / apitcg games (repeatable)",
     )
 
-    subparsers.add_parser("build", help="merge every source into the SQLite database")
+    fetch_tcgcsv = subparsers.add_parser(
+        "fetch-tcgcsv", help="download TCGCSV category dumps (alias for fetch --source tcgcsv)"
+    )
+    fetch_tcgcsv.add_argument(
+        "--game",
+        action="append",
+        choices=sorted(TCGCSV_CATEGORIES),
+        help="limit to specific TCGCSV games (repeatable)",
+    )
+    subparsers.add_parser(
+        "fetch-scryfall",
+        help="download Scryfall All Cards bulk (alias for fetch --source scryfall)",
+    )
+    subparsers.add_parser(
+        "fetch-sports",
+        help="print how to stage TCDB / Beckett sports checklists",
+    )
+
+    build_cmd = subparsers.add_parser("build", help="merge every source into the SQLite database")
+    build_cmd.add_argument(
+        "--game",
+        action="append",
+        choices=sorted(GAME_CODES),
+        help="limit the build to specific games (repeatable)",
+    )
+
     export = subparsers.add_parser("export", help="write the Excel workbook and CSVs")
     export.add_argument("--no-csv", action="store_true", help="only write the Excel workbook")
     subparsers.add_parser("report", help="print coverage and source disagreements")
@@ -61,9 +86,29 @@ def main(argv: list[str] | None = None) -> int:
         choices=FETCH_SOURCES,
         help="extra sources to fetch before build (tcgdex always runs on update)",
     )
+    update.add_argument(
+        "--game",
+        action="append",
+        choices=sorted(GAME_CODES),
+        help="limit the build to specific games (repeatable)",
+    )
 
     args = parser.parse_args(argv)
     command = args.command
+
+    if command == "fetch-tcgcsv":
+        _run_fetch(["tcgcsv"], languages=None, games=getattr(args, "game", None))
+        return 0
+    if command == "fetch-scryfall":
+        _run_fetch(["scryfall"], languages=None, games=None)
+        return 0
+    if command == "fetch-sports":
+        from .fetch_sports import print_beckett_help, print_tcdb_help
+
+        print("Staging sports checklists (TCDB + Beckett)...")
+        print_tcdb_help()
+        print_beckett_help()
+        return 0
 
     if command in {"fetch", "update"}:
         sources = list(getattr(args, "source", None) or [])
@@ -71,13 +116,17 @@ def main(argv: list[str] | None = None) -> int:
             sources = ["tcgdex", *sources]
         if command == "fetch" and not sources:
             sources = ["tcgdex"]
-        _run_fetch(sources, languages=getattr(args, "language", None), games=getattr(args, "game", None))
+        _run_fetch(
+            sources,
+            languages=getattr(args, "language", None),
+            games=getattr(args, "game", None),
+        )
 
     if command in {"build", "update"}:
         from .build import build
 
         print("Building database...")
-        stats = build()
+        stats = build(games=getattr(args, "game", None))
         print(f"  {DB_PATH}: " + ", ".join(f"{key}={value}" for key, value in stats.items()))
 
     if command in {"export", "update"}:

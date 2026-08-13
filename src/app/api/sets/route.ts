@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sets = listSets(getDb(), {
+    game: searchParams.get("game") ?? undefined,
     language: searchParams.get("language") ?? undefined,
     q: searchParams.get("q") ?? undefined,
     limit: searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined,

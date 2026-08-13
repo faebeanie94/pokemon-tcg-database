@@ -11,7 +11,7 @@ from .config import BUILD, DB_PATH, GAMES, LANGUAGES
 from .match import SetRegistry, merge_cards
 from .normalize import release_year
 from .records import SourceData
-from .sources import load_all
+from .sources import load_all, source_order_for
 
 SCHEMA = Path(__file__).with_name("schema.sql")
 
@@ -91,15 +91,34 @@ def _derive_english_names(card_rows: list[dict[str, Any]]) -> int:
     return derived
 
 
-def build(db_path: Path = DB_PATH) -> dict[str, Any]:
-    sources: list[SourceData] = load_all()
+def _filter_sources(sources: list[SourceData], games: list[str] | None) -> list[SourceData]:
+    if not games:
+        return sources
+    wanted = set(games)
+    filtered: list[SourceData] = []
+    for data in sources:
+        sets = [record for record in data.sets if record.game in wanted]
+        cards = [record for record in data.cards if record.game in wanted]
+        if not sets and not cards:
+            continue
+        filtered.append(SourceData(name=data.name, sets=sets, cards=cards))
+    return filtered
+
+
+def build(
+    db_path: Path = DB_PATH,
+    *,
+    games: list[str] | None = None,
+) -> dict[str, Any]:
+    sources: list[SourceData] = _filter_sources(load_all(), games)
     if not sources:
         raise SystemExit(
             "No sources found. Run `python -m pokedb fetch` and/or add the spreadsheets."
         )
 
     source_order = [data.name for data in sources]
-    registry = SetRegistry(source_order)
+    order_fn = lambda game: source_order_for(game, source_order)  # noqa: E731
+    registry = SetRegistry(source_order, order_for=order_fn)
     for data in sources:
         for record in data.sets:
             registry.add(record)
@@ -107,7 +126,9 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
     registry.assign_uids()
 
     all_cards = [card for data in sources for card in data.cards]
-    card_rows, orphans = merge_cards(all_cards, registry, source_order)
+    card_rows, orphans = merge_cards(
+        all_cards, registry, source_order, order_for=order_fn
+    )
     derived_names = _derive_english_names(card_rows)
 
     BUILD.mkdir(parents=True, exist_ok=True)
@@ -121,7 +142,10 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
     _insert(
         connection,
         "sets",
-        [_set_row(canonical, source_order) for canonical in registry.canonical],
+        [
+            _set_row(canonical, registry.order_for(canonical.game))
+            for canonical in registry.canonical
+        ],
     )
     _insert(
         connection,
@@ -146,7 +170,7 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
     source_ids = [
         row
         for canonical in registry.canonical
-        for row in _source_id_rows(canonical, source_order)
+        for row in _source_id_rows(canonical, registry.order_for(canonical.game))
     ]
     _insert(connection, "set_source_ids", source_ids)
     _insert(connection, "cards", card_rows)
@@ -177,12 +201,20 @@ def build(db_path: Path = DB_PATH) -> dict[str, Any]:
         "orphan_cards": len(orphans),
     }
 
+    per_game_orders = {
+        game: ",".join(source_order_for(game, source_order))
+        for game in sorted({canonical.game for canonical in registry.canonical})
+    }
     _insert(
         connection,
         "build_info",
         [
             {"key": "built_at", "value": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())},
             {"key": "source_order", "value": ",".join(source_order)},
+            *[
+                {"key": f"source_order_{game}", "value": order}
+                for game, order in per_game_orders.items()
+            ],
             *[{"key": f"count_{name}", "value": str(value)} for name, value in stats.items()],
         ],
     )

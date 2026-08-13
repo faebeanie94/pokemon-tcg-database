@@ -18,6 +18,17 @@ def test_language_rich_loaders_precede_tcgcsv():
     assert names.index("apitcg") < names.index("tcgcsv")
 
 
+def test_source_order_for_prefers_scryfall_over_tcgcsv():
+    from pokedb.sources import source_order_for
+
+    assert source_order_for("mtg", ["tcgcsv", "scryfall"]) == ["scryfall", "tcgcsv"]
+    assert source_order_for("sports", ["beckett", "sports_database.xlsx", "tcdb"]) == [
+        "sports_database.xlsx",
+        "tcdb",
+        "beckett",
+    ]
+
+
 def test_plan_aliases_reexport_loaders():
     assert fab.SOURCE == goagain.SOURCE
     assert fab.GAME == "fleshblood"

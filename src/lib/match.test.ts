@@ -301,3 +301,81 @@ describe("resolveSetTokens", () => {
     expect(resolveSetTokens(db, ["Charizard"])).toEqual([]);
   });
 });
+
+describe("Phase 7 acceptance", () => {
+  let db: Database;
+
+  beforeEach(() => {
+    db = buildTestCatalog();
+  });
+
+  it("Beckham: set + name + number → unambiguous Halo Ref", () => {
+    const result = matchCards(db, {
+      game: "sports",
+      set: "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
+      name: "SIR DAVID BECKHAM - HALO REF.",
+      number: "38",
+    });
+
+    expect(result.unambiguous).toBe(true);
+    expect(result.candidates[0].card.parallel).toBe("HALO REF");
+    expect(result.candidates[0].card.card_uid).toBe(
+      "sports:en:202526toppsmanchesterunitedteamset#38#haloref"
+    );
+  });
+
+  it("Shawn Michaels: SSL-SM Ruby Auto; serial parsed but not required", () => {
+    const withSerial = matchCards(db, {
+      game: "sports",
+      set: "2024 PANINI FLAWLESS WWE",
+      name: "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15",
+      number: "SSL-SM",
+    });
+    const withoutSerial = matchCards(db, {
+      game: "sports",
+      set: "2024 PANINI FLAWLESS WWE",
+      subject: "SHAWN MICHAELS",
+      parallel: "RUBY REF",
+      number: "SSL-SM",
+    });
+
+    expect(withSerial.unambiguous).toBe(true);
+    expect(withSerial.interpretation.serial_number).toBe("09");
+    expect(withSerial.interpretation.print_run).toBe(15);
+    expect(withSerial.candidates[0].card.card_uid).toBe(
+      "sports:en:2024paniniflawlesswwe#SSL-SM#rubyref"
+    );
+
+    expect(withoutSerial.unambiguous).toBe(true);
+    expect(withoutSerial.candidates[0].card.card_uid).toBe(
+      withSerial.candidates[0].card.card_uid
+    );
+  });
+
+  it("Pokémon regressions still pass with game=pokemon", () => {
+    const byQuery = matchCards(db, {
+      query: "Charizard 4/102",
+      language: "en",
+      game: "pokemon",
+    });
+    const byFields = matchCards(db, {
+      name: "Charizard",
+      set: "base1",
+      number: "004",
+      language: "en",
+      game: "pokemon",
+    });
+    const byCode = matchCards(db, {
+      query: "BS 4",
+      language: "en",
+      game: "pokemon",
+    });
+
+    expect(byQuery.unambiguous).toBe(true);
+    expect(byQuery.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
+    expect(byFields.unambiguous).toBe(true);
+    expect(byFields.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
+    expect(byCode.unambiguous).toBe(true);
+    expect(byCode.candidates[0].card.card_uid).toBe("pokemon:en:bs#4");
+  });
+});

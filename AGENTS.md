@@ -24,9 +24,10 @@ vs need curated spreadsheets, [docs/MIGRATION.md](docs/MIGRATION.md) for
 ```bash
 pip install -r requirements-dev.txt
 PYTHONPATH=src python3 -m pokedb update          # TCGdex + build (default)
-PYTHONPATH=src python3 -m pokedb fetch --source tcgcsv --game onepiece
-PYTHONPATH=src python3 -m pokedb fetch --source scryfall
-PYTHONPATH=src python3 -m pokedb build
+PYTHONPATH=src python3 -m pokedb fetch-tcgcsv --game onepiece
+PYTHONPATH=src python3 -m pokedb fetch-scryfall
+PYTHONPATH=src python3 -m pokedb fetch-sports    # TCDB / Beckett staging help
+PYTHONPATH=src python3 -m pokedb build --game pokemon --game sports
 PYTHONPATH=src pytest -q
 
 pnpm install
@@ -40,9 +41,8 @@ pnpm fetch:mtg / pnpm fetch:onepiece             # large or game-specific dumps
 
 `PYTHONPATH=src` is required for every `pokedb` command; there is no installed
 package. **`pnpm refresh` stays Pokémon-first** on purpose — Scryfall and full
-TCGCSV walks are opt-in. Language-rich sources (Scryfall, YGOPRODeck, Lorcast,
-GoAgain, apitcg) and JP coverage gaps are in
-[docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+TCGCSV walks are opt-in. Language-rich sources and JP gaps, plus the Phase 5
+long-tail backlog, are in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 
 ### Non-obvious notes
 
@@ -69,10 +69,14 @@ GoAgain, apitcg) and JP coverage gaps are in
   prefix (`en:bs#4`) are still accepted by the matcher during migration.
   Grading records should store the new form going forward. See
   [docs/MIGRATION.md](docs/MIGRATION.md).
-- **Sports grading format** (operator / API fields): set name, card name line
-  (subject + parallel + notations + optional `09/15` serial), number. The
-  `09/15` serial is a print run, **not** a Pokémon-style printed total — see
-  `src/lib/sports.ts`.
+- **Sports grading format** (operator / API fields): set name, **subject**,
+  **parallel**, number; optional serial (`09/15`) is interpretation-only and
+  not catalog identity. The operator console sports mode uses those four fields
+  (plus optional serial). A combined name line is still accepted by `/api/match`
+  (`name=SIR DAVID BECKHAM - HALO REF.`). See `src/lib/sports.ts`.
+- **Per-game source order** lives in `SOURCE_ORDER_BY_GAME`
+  (`src/pokedb/sources/__init__.py`) — Scryfall beats TCGCSV for MTG, curated
+  sports xlsx beats TCDB/Beckett, etc. `build_info` stores `source_order_<game>`.
 - **Sports data strategy** defaults to curated xlsx/JSON (no public Topps /
   Panini / Upper Deck checklist API). Spine:
   `sources/sports_database.xlsx` + `sources/sports_cards.xlsx` (regenerate with

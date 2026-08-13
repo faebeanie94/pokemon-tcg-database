@@ -17,6 +17,7 @@ distinct printings that share a code (``Base Set`` and ``Base Set
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from .normalize import (
@@ -93,14 +94,24 @@ class CanonicalSet:
 class SetRegistry:
     """Groups incoming SetRecords into canonical sets, one per game+language."""
 
-    def __init__(self, source_order: list[str]) -> None:
+    def __init__(
+        self,
+        source_order: list[str],
+        *,
+        order_for: Callable[[str], list[str]] | None = None,
+    ) -> None:
         self.source_order = source_order
+        self._order_for = order_for or (lambda _game: source_order)
         self.canonical: list[CanonicalSet] = []
         # (game, language, kind, key) -> CanonicalSet
         self._by_key: dict[tuple[str, str, str, str], CanonicalSet] = {}
         # (source, game, language, code) -> CanonicalSet
         self._by_source_set: dict[tuple[str, str, str, str], CanonicalSet] = {}
         self.notes: list[str] = []
+
+    def order_for(self, game: str) -> list[str]:
+        """Merge precedence for a game (earlier sources win on field conflicts)."""
+        return self._order_for(game)
 
     def add(self, record: SetRecord) -> CanonicalSet:
         code_keys = _unique(
@@ -142,8 +153,8 @@ class SetRegistry:
                     self.notes.append(
                         f"{kind} match '{key}' rejected on release year: {record.game}/"
                         f"{record.language} '{record.display_name}' ({record.release_date}) vs "
-                        f"'{candidate.display_name(self.source_order)}' "
-                        f"({candidate.first(self.source_order, 'release_date')})"
+                        f"'{candidate.display_name(self.order_for(record.game))}' "
+                        f"({candidate.first(self.order_for(record.game), 'release_date')})"
                     )
                     continue
                 return candidate, kind
@@ -169,7 +180,8 @@ class SetRegistry:
         for canonical in self.canonical:
             if len(canonical.records) != 1:
                 continue
-            date = canonical.first(self.source_order, "release_date")
+            order = self.order_for(canonical.game)
+            date = canonical.first(order, "release_date")
             if date and len(date) == 10:
                 by_date.setdefault((canonical.game, canonical.language, date), []).append(
                     canonical
@@ -181,9 +193,13 @@ class SetRegistry:
             first, second = candidates
             if set(first.records) & set(second.records):
                 continue
-            keep, absorb = sorted(
-                candidates, key=lambda item: self.source_order.index(next(iter(item.records)))
-            )
+            order = self.order_for(first.game)
+
+            def _rank(item: CanonicalSet) -> int:
+                name = next(iter(item.records))
+                return order.index(name) if name in order else len(order)
+
+            keep, absorb = sorted(candidates, key=_rank)
             self._merge(keep, absorb, "release-date")
             merged += 1
         if merged:
@@ -204,11 +220,12 @@ class SetRegistry:
     def assign_uids(self) -> None:
         used: set[str] = set()
         for canonical in self.canonical:
+            order = self.order_for(canonical.game)
             code = (
-                canonical.first(self.source_order, "abbreviation")
-                or canonical.first(self.source_order, "source_set_id")
-                or canonical.first(self.source_order, "name_en")
-                or canonical.first(self.source_order, "name")
+                canonical.first(order, "abbreviation")
+                or canonical.first(order, "source_set_id")
+                or canonical.first(order, "name_en")
+                or canonical.first(order, "name")
                 or "set"
             )
             base = f"{canonical.game}:{canonical.language}:{slugify(str(code))}"
@@ -217,7 +234,7 @@ class SetRegistry:
             # regardless of the order the sources were processed in.
             uid = base
             if uid in used:
-                year = release_year(canonical.first(self.source_order, "release_date"))
+                year = release_year(canonical.first(order, "release_date"))
                 uid = f"{base}-{year}" if year else base
             counter = 2
             while uid in used:
@@ -239,17 +256,24 @@ def merge_cards(
     cards: list[CardRecord],
     registry: SetRegistry,
     source_order: list[str],
+    *,
+    order_for: Callable[[str], list[str]] | None = None,
 ) -> tuple[list[dict], list[CardRecord]]:
     """Collapse card rows onto canonical sets.
 
     One row per (set, number, parallel) — a base printing and its Halo Ref
     parallel are distinct cards.
     """
-    order = {name: index for index, name in enumerate(source_order)}
+    resolve_order = order_for or (lambda _game: source_order)
+
+    def _rank(item: CardRecord) -> int:
+        order = resolve_order(item.game)
+        return order.index(item.source) if item.source in order else len(order)
+
     merged: dict[tuple[str, str, str], dict] = {}
     orphans: list[CardRecord] = []
 
-    for record in sorted(cards, key=lambda item: order.get(item.source, len(order))):
+    for record in sorted(cards, key=_rank):
         set_uid = registry.resolve_set_uid(
             record.source, record.game, record.language, record.source_set_id
         )

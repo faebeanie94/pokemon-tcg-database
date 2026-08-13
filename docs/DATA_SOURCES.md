@@ -96,17 +96,29 @@ See [SPORTS.md](SPORTS.md) for column layouts and merge precedence.
 
 ## Manual / community-only (Phase 5 backlog)
 
-No catalog APIs; same curated JSON/xlsx approach when operators need them:
+These categories have **no structured catalog API** as of 2026. Do not block
+Phases 0–4 or the grading workflow on them — track as manual curation, sports-style
+xlsx/JSON imports, or a future commercial partnership.
 
-| Category | Strategy |
-| --- | --- |
-| Bandai Carddass | Community wiki / spreadsheet |
-| Meiji promotional cards | Collector spreadsheets |
-| Marvel trading cards (Fleer/Skybox/UD) | Sports-style curation (not Dice Masters) |
-| UFC trading cards | Sports-style curation (seed has a Topps Chrome UFC sample) |
-| Skybox | Manufacturer tag on sports sets (seed has 1996-97 Premium) |
-| Bandai JP One Piece cardlist | Deferred; English via TCGCSV + apitcg |
-| Warhammer (TCGPlayer cats 39–45) | Miniatures/paints/books — **not cards**; skip |
+| Category | Strategy | Notes |
+| --- | --- | --- |
+| Bandai Carddass (vintage DBZ, etc.) | Community wiki / curated spreadsheet | No public checklist API |
+| Meiji promotional cards | Collector spreadsheets | Promo-only; tiny catalogs |
+| Skybox vintage | TCDB dumps (partial) + curated sports xlsx | Seed has 1996-97 Premium sample |
+| Marvel trading cards (Fleer / Skybox / UD) | Sports-style curation | **Not** Marvel Dice Masters (TCGCSV cat 18) |
+| Warhammer beyond Champions TCG | Skip TCGplayer cats 39–45 | Miniatures / paints / books — not cards |
+| UFC / multi-sport Topps–Panini gaps | Beckett + curated spine | Expand `sports_cards.xlsx` as needed |
+
+### Commercial vendor evaluation (optional)
+
+If scrape maintenance (TCDB / Beckett adapters) becomes too costly, evaluate a
+licensed catalog (e.g. CardSight or similar) against:
+
+1. Coverage of soccer / wrestling / football parallels we grade today
+2. Stable IDs we can map into `card_uid` (`sports:…#num#parallel`)
+3. Redistribution terms compatible with an **internal** grading tool
+
+Until then, curated `sources/sports_*.xlsx` remains the spine of record.
 
 ## Language coverage reality
 

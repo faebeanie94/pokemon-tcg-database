@@ -133,20 +133,27 @@ match; store the new form on new grading records. See
 ## Commands
 
 ```bash
-python -m pokedb update    # fetch, build, export, report - the usual refresh
-python -m pokedb fetch     # download the latest data only
-python -m pokedb build     # merge the sources into build/pokemon_tcg.sqlite
-python -m pokedb export    # write the workbook and CSVs
-python -m pokedb report    # coverage and source disagreements
-python -m pokedb verify    # check tcgdex_cards.xlsx against the API
+PYTHONPATH=src python3 -m pokedb update         # fetch TCGdex, build, export, report
+PYTHONPATH=src python3 -m pokedb fetch          # download (default: tcgdex)
+PYTHONPATH=src python3 -m pokedb fetch-tcgcsv --game onepiece
+PYTHONPATH=src python3 -m pokedb fetch-scryfall
+PYTHONPATH=src python3 -m pokedb fetch-sports   # TCDB / Beckett staging help
+PYTHONPATH=src python3 -m pokedb build --game sports
+PYTHONPATH=src python3 -m pokedb export
+PYTHONPATH=src python3 -m pokedb report
+PYTHONPATH=src python3 -m pokedb verify
 ```
 
-Tests: `pip install -r requirements-dev.txt && pytest`. They use a small
-in-memory dataset, so they need no network access.
+Tests: `pip install -r requirements-dev.txt && PYTHONPATH=src pytest`. They use a
+small in-memory dataset, so they need no network access.
 
 Also written: `exports/sets.csv`, `exports/cards.csv.gz` (for loading into
 another system) and `exports/reconciliation.csv` (sets with no card list, and
 release dates the sources disagree on).
+
+**Licensing:** Bandai, Konami, Ravensburger, Wizards, Topps, and Panini assert
+rights over card data and images. Fine for an **internal grading tool**; do not
+republish catalogs without a license. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 
 ## Adding or correcting data
 
@@ -183,10 +190,9 @@ missing or older than the current build.
 The console at `/` has two modes. **Identify** takes what is printed on a card
 and shows the ranked candidates with the reason each matched, through the same
 `/api/match` endpoint the grading program calls. For sports cards, pick Game →
-Sports and fill in the three grading fields (set name, card name + parallel,
-number) instead of free text. **Browse** pages through the catalog by name, set
-and collector number, for when a card has to be found by working through a set
-instead.
+Sports and fill in **Set / Subject / Parallel / Number** (optional serial for
+display only). **Browse** pages through the catalog by name, set and collector
+number, for when a card has to be found by working through a set instead.
 
 ## Getting started
 

@@ -12,8 +12,8 @@ import type { MatchResponse } from "@/lib/match";
  * pages through the catalog for the times a card has to be found by working
  * through a set instead.
  *
- * Sports mode uses three structured fields (set name, card name + parallel,
- * number) instead of a single free-text query.
+ * Sports mode uses Set / Subject / Parallel / Number (serial is optional
+ * interpretation only) instead of a single free-text query.
  */
 
 type Mode = "identify" | "browse";
@@ -58,14 +58,17 @@ const SPORTS_EXAMPLES = [
   {
     label: "Beckham Halo Ref",
     set: "2025-26 TOPPS MANCHESTER UNITED TEAM SET",
-    name: "SIR DAVID BECKHAM - HALO REF.",
+    subject: "SIR DAVID BECKHAM",
+    parallel: "HALO REF",
     number: "38",
   },
   {
     label: "Michaels Ruby /15",
     set: "2024 PANINI FLAWLESS WWE",
-    name: "SHAWN MICHAELS – AUTO - RUBY REF. – 09/15",
+    subject: "SHAWN MICHAELS",
+    parallel: "RUBY REF",
     number: "SSL-SM",
+    serial: "09/15",
   },
 ];
 
@@ -79,8 +82,10 @@ export default function Home() {
   const [setFilter, setSetFilter] = useState("");
   const [numberFilter, setNumberFilter] = useState("");
   const [sportsSet, setSportsSet] = useState("");
-  const [sportsName, setSportsName] = useState("");
+  const [sportsSubject, setSportsSubject] = useState("");
+  const [sportsParallel, setSportsParallel] = useState("");
   const [sportsNumber, setSportsNumber] = useState("");
+  const [sportsSerial, setSportsSerial] = useState("");
   const [offset, setOffset] = useState(0);
 
   const [languages, setLanguages] = useState<LanguageOption[]>([]);
@@ -106,11 +111,28 @@ export default function Home() {
 
   useEffect(() => {
     setOffset(0);
-  }, [mode, query, game, language, setFilter, numberFilter, sportsSet, sportsName, sportsNumber]);
+  }, [
+    mode,
+    query,
+    game,
+    language,
+    setFilter,
+    numberFilter,
+    sportsSet,
+    sportsSubject,
+    sportsParallel,
+    sportsNumber,
+    sportsSerial,
+  ]);
 
   const runMatch = useCallback(async () => {
     if (sportsMode) {
-      if (!sportsSet.trim() && !sportsName.trim() && !sportsNumber.trim()) {
+      if (
+        !sportsSet.trim() &&
+        !sportsSubject.trim() &&
+        !sportsParallel.trim() &&
+        !sportsNumber.trim()
+      ) {
         setMatch(null);
         return;
       }
@@ -126,8 +148,10 @@ export default function Home() {
             game: "sports",
             sports: true,
             set: sportsSet || undefined,
-            name: sportsName || undefined,
+            subject: sportsSubject || undefined,
+            parallel: sportsParallel || undefined,
             number: sportsNumber || undefined,
+            serial: sportsSerial || undefined,
             language: language || undefined,
             limit: 25,
           }
@@ -154,7 +178,17 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [query, language, game, sportsMode, sportsSet, sportsName, sportsNumber]);
+  }, [
+    query,
+    language,
+    game,
+    sportsMode,
+    sportsSet,
+    sportsSubject,
+    sportsParallel,
+    sportsNumber,
+    sportsSerial,
+  ]);
 
   const runSearch = useCallback(async () => {
     setLoading(true);
@@ -273,11 +307,18 @@ export default function Home() {
               autoFocus
             />
             <Field
-              id="sports-name"
-              label="Card name + parallel"
-              value={sportsName}
-              onChange={setSportsName}
-              placeholder="SIR DAVID BECKHAM - HALO REF."
+              id="sports-subject"
+              label="Subject"
+              value={sportsSubject}
+              onChange={setSportsSubject}
+              placeholder="SIR DAVID BECKHAM"
+            />
+            <Field
+              id="sports-parallel"
+              label="Parallel"
+              value={sportsParallel}
+              onChange={setSportsParallel}
+              placeholder="HALO REF"
             />
             <Field
               id="sports-number"
@@ -285,6 +326,13 @@ export default function Home() {
               value={sportsNumber}
               onChange={setSportsNumber}
               placeholder="38 or SSL-SM"
+            />
+            <Field
+              id="sports-serial"
+              label="Serial (optional)"
+              value={sportsSerial}
+              onChange={setSportsSerial}
+              placeholder="09/15"
             />
             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:col-span-2">
               <span>Try:</span>
@@ -294,8 +342,10 @@ export default function Home() {
                   type="button"
                   onClick={() => {
                     setSportsSet(example.set);
-                    setSportsName(example.name);
+                    setSportsSubject(example.subject);
+                    setSportsParallel(example.parallel);
                     setSportsNumber(example.number);
+                    setSportsSerial(example.serial ?? "");
                   }}
                   className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
                 >
