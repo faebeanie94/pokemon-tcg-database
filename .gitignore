@@ -5,17 +5,17 @@
 /.next/
 /out/
 
-# production
+# production, and the card database built into it by `python -m pokedb build`
 /build
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
-# local sqlite database (generated at runtime from seed data)
+# sqlite side files, wherever POKEDB_DB points
+*.db-wal
+*.db-shm
 /data/*.db
-/data/*.db-wal
-/data/*.db-shm
 
 # python
 .venv/
@@ -29,6 +29,7 @@ data/raw/
 .DS_Store
 *.log
 .env*.local
-/apis/
-.idea/
 ~$*.xlsx
+
+# editor settings
+.idea/

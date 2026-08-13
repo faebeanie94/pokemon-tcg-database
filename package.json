@@ -7,11 +7,14 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
+    "build:index": "tsx scripts/build-match-index.ts",
+    "refresh": "PYTHONPATH=src python3 -m pokedb update && pnpm build:index",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
+    "exceljs": "^4.4.0",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -26,10 +29,13 @@
     "eslint-config-next": "^15.1.6",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.12",
     "typescript": "^5.7.3",
     "vitest": "^3.0.4"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["better-sqlite3"]
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }

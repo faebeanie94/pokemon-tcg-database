@@ -4,22 +4,25 @@ Export all English Pokémon cards (name, set, number, rarity, artist, images)
 from the pokemontcg.io API into an Excel workbook.
 
 Usage:
-    python3 pokemontcgio_export.py
+    POKEMONTCGIO_API_KEY=... python3 pokemontcgio_export.py
 
-Before running, put your free API key below (get one at https://dev.pokemontcg.io)
-or leave it blank to run unauthenticated (much slower / lower rate limits).
+The API key is read from the POKEMONTCGIO_API_KEY environment variable (get a
+free one at https://dev.pokemontcg.io). Running without it works but is much
+slower and hits 500/502s far more often. Never hard-code the key here — this
+file is committed to a public repository.
 
 Output:
     pokemontcgio_cards.xlsx
 """
 
+import os
 import time
 import requests
 import pandas as pd
 
 # ---- Config ------------------------------------------------------------
 
-API_KEY = "f7767675-e2f3-4fef-aded-d56e36f3b57e"  # <-- paste your free key here, or leave blank (strongly recommended: 500/502s are far more common unauthenticated)
+API_KEY = os.environ.get("POKEMONTCGIO_API_KEY", "")
 BASE_URL = "https://api.pokemontcg.io/v2/cards"
 PAGE_SIZE = 50            # smaller pages = lighter load on their flaky backend (was 100)
 OUTPUT_FILE = "pokemontcgio_cards.xlsx"
