@@ -45,6 +45,13 @@ GAMES: list[dict[str, str]] = [
     {"code": "warhammer", "name": "Warhammer Age of Sigmar Champions", "kind": "tcg"},
     {"code": "dicemasters", "name": "Marvel Dice Masters", "kind": "tcg"},
     {"code": "universus", "name": "UniVersus", "kind": "tcg"},
+    {"code": "digimon", "name": "Digimon Card Game", "kind": "tcg"},
+    {"code": "vanguard", "name": "Cardfight!! Vanguard", "kind": "tcg"},
+    {"code": "starwars", "name": "Star Wars Unlimited", "kind": "tcg"},
+    {"code": "sorcery", "name": "Sorcery: Contested Realm", "kind": "tcg"},
+    {"code": "riftbound", "name": "Riftbound", "kind": "tcg"},
+    {"code": "gundam", "name": "Gundam Card Game", "kind": "tcg"},
+    {"code": "unionarena", "name": "Union Arena", "kind": "tcg"},
     {"code": "sports", "name": "Sports & Entertainment Cards", "kind": "sports"},
 ]
 

@@ -15,6 +15,7 @@ from . import (
     apitcg,
     bandai_onepiece,
     beckett,
+    composed_catalog,
     database_xlsx,
     goagain,
     language_dumps,
@@ -53,32 +54,43 @@ LOADERS = (
     bandai_onepiece.load,
     language_dumps.load_weiss_jp,
     tcgcsv.load,
+    # Dump-workbook compose (scripts/compose_xlsx_catalog.py) — last so it
+    # fills gaps and adds Digimon / Vanguard / Star Wars / etc.
+    composed_catalog.load,
 )
 
 # Preferred merge order per game (earlier wins). Sources absent from a build
 # are skipped. Games not listed fall back to the loaded flat order.
 SOURCE_ORDER_BY_GAME: dict[str, list[str]] = {
-    "pokemon": ["database.xlsx", "pikaqian_cards.xlsx", "tcgdex"],
+    "pokemon": ["database.xlsx", "pikaqian_cards.xlsx", "tcgdex", "composed_xlsx"],
     "sports": [
         "sports_database.xlsx",
         "sports_seed",
         "sports_checklists.xlsx",
         "tcdb",
         "beckett",
+        "composed_xlsx",
     ],
-    "mtg": ["scryfall", "tcgcsv"],
-    "yugioh": ["ygoprodeck", "ygo_ocg", "tcgcsv"],
-    "lorcana": ["lorcast", "lorcana_i18n", "tcgcsv"],
-    "fleshblood": ["goagain", "tcgcsv"],
-    "onepiece": ["bandai_onepiece", "apitcg", "tcgcsv"],
-    "dbsfw": ["apitcg", "tcgcsv"],
-    "weiss": ["weiss_jp", "tcgcsv"],
-    "dbz": ["tcgcsv"],
-    "dbs": ["tcgcsv"],
-    "metazoo": ["tcgcsv"],
-    "warhammer": ["tcgcsv"],
-    "dicemasters": ["tcgcsv"],
-    "universus": ["tcgcsv"],
+    "mtg": ["scryfall", "tcgcsv", "composed_xlsx"],
+    "yugioh": ["ygoprodeck", "ygo_ocg", "tcgcsv", "composed_xlsx"],
+    "lorcana": ["lorcast", "lorcana_i18n", "tcgcsv", "composed_xlsx"],
+    "fleshblood": ["goagain", "tcgcsv", "composed_xlsx"],
+    "onepiece": ["bandai_onepiece", "apitcg", "tcgcsv", "composed_xlsx"],
+    "dbsfw": ["apitcg", "tcgcsv", "composed_xlsx"],
+    "weiss": ["weiss_jp", "tcgcsv", "composed_xlsx"],
+    "dbz": ["tcgcsv", "composed_xlsx"],
+    "dbs": ["tcgcsv", "composed_xlsx"],
+    "metazoo": ["tcgcsv", "composed_xlsx"],
+    "warhammer": ["tcgcsv", "composed_xlsx"],
+    "dicemasters": ["tcgcsv", "composed_xlsx"],
+    "universus": ["tcgcsv", "composed_xlsx"],
+    "digimon": ["composed_xlsx"],
+    "vanguard": ["composed_xlsx"],
+    "starwars": ["composed_xlsx"],
+    "sorcery": ["composed_xlsx"],
+    "riftbound": ["composed_xlsx"],
+    "gundam": ["composed_xlsx"],
+    "unionarena": ["composed_xlsx"],
 }
 
 
