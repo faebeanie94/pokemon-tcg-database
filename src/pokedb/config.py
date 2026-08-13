@@ -44,6 +44,7 @@ GAMES: list[dict[str, str]] = [
     {"code": "metazoo", "name": "MetaZoo", "kind": "tcg"},
     {"code": "warhammer", "name": "Warhammer Age of Sigmar Champions", "kind": "tcg"},
     {"code": "dicemasters", "name": "Marvel Dice Masters", "kind": "tcg"},
+    {"code": "universus", "name": "UniVersus", "kind": "tcg"},
     {"code": "sports", "name": "Sports & Entertainment Cards", "kind": "sports"},
 ]
 
@@ -53,6 +54,7 @@ TCGCSV_CATEGORIES: dict[str, int] = {
     "yugioh": 2,
     "weiss": 20,
     "dbz": 23,
+    "universus": 25,
     "dbs": 27,
     "fleshblood": 62,
     "onepiece": 68,

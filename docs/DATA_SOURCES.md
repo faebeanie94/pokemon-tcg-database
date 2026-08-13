@@ -42,6 +42,8 @@ pnpm build:index
 | MetaZoo | TCGCSV (cat 66) | Catalog is static (game discontinued) |
 | Warhammer Age of Sigmar Champions | TCGCSV (cat 54) | Card game only — not miniatures |
 | Marvel Dice Masters | TCGCSV (cat 18) | Dice + cards, not Marvel trading cards |
+| UniVersus | TCGCSV (cat 25) | English TCGplayer catalog |
+| Sports / entertainment | Curated xlsx + TCDB/Beckett dumps | No public Topps/Panini API |
 
 TCGCSV base: `https://tcgcsv.com/tcgplayer/` (no API key). Fetch with
 `python3 apis/tcgcsv_fetch.py` or `PYTHONPATH=src python3 -m pokedb fetch --source tcgcsv`.
@@ -119,6 +121,18 @@ licensed catalog (e.g. CardSight or similar) against:
 3. Redistribution terms compatible with an **internal** grading tool
 
 Until then, curated `sources/sports_*.xlsx` remains the spine of record.
+
+## Vintage / no-API dumps (same pattern as sports)
+
+Skybox, Bandai Carddass, Meiji, vintage Marvel trading cards, and non-Champions
+Warhammer use the **same** ingest path as sports — not new loaders:
+
+1. Add checklist rows to `sources/sports_cards.xlsx` / `sports_database.xlsx`, or
+2. Drop JSON under `data/raw/sports/` (see `seed.json`, which already includes a
+   Skybox basketball sample) / `data/raw/tcdb/` / `data/raw/beckett/`.
+
+Do not invent a separate vintage pipeline. Carddass / Meiji / Fleer Marvel stay
+manual until a commercial dump is licensed.
 
 ## Language coverage reality
 

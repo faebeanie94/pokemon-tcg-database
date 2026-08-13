@@ -59,6 +59,27 @@ def test_languages_lists_coverage(client):
     assert {row["code"] for row in body} == {"en", "ja"}
 
 
+def test_games_lists_coverage(client):
+    body = client.get("/v1/games").json()
+    assert body[0]["game"] == "pokemon"
+    assert body[0]["kind"] == "tcg"
+    assert body[0]["sets"] == 2
+
+
+def test_sets_and_cards_accept_a_game_filter(client):
+    sets = client.get("/v1/sets", params={"game": "pokemon"}).json()
+    assert sets["total"] == 2
+    empty = client.get("/v1/sets", params={"game": "mtg"}).json()
+    assert empty["total"] == 0
+
+    cards = client.get("/v1/cards", params={"game": "pokemon", "language": "en"}).json()
+    assert cards["total"] == 2
+    lookup = client.get(
+        "/v1/lookup", params={"set": "SVI", "number": "4", "game": "pokemon"}
+    ).json()
+    assert lookup["matches"] == 1
+
+
 def test_refresh_requires_a_configured_token(client):
     assert client.post("/v1/admin/refresh").status_code == 503
 

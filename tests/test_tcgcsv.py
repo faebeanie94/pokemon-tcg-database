@@ -24,10 +24,12 @@ def test_tcgcsv_category_map_covers_requested_games():
         "metazoo",
         "warhammer",
         "dicemasters",
+        "universus",
     }
     assert expected <= set(TCGCSV_CATEGORIES)
     assert TCGCSV_GAMES[68] == "onepiece"
     assert TCGCSV_GAMES[2] == "yugioh"
+    assert TCGCSV_GAMES[25] == "universus"
 
 
 def test_tcgcsv_fetch_resolves_category_ids():

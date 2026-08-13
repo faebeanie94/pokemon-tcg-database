@@ -194,9 +194,21 @@ def languages() -> list[dict]:
     )
 
 
+@app.get("/v1/games", tags=["reference"])
+def list_games() -> list[dict]:
+    return database.query(
+        """
+        SELECT game, game_name AS name, game_kind AS kind, sets, cards
+          FROM coverage_by_game
+         ORDER BY cards DESC, game_name
+        """
+    )
+
+
 @app.get("/v1/sets", tags=["sets"])
 def list_sets(
     language: str | None = Query(default=None, description="language code, e.g. 'en'"),
+    game: str | None = Query(default=None, description="game code, e.g. 'pokemon' or 'sports'"),
     q: str | None = Query(default=None, description="search set name (any language)"),
     code: str | None = Query(default=None, description="exact set code, e.g. 'SVI'"),
     year: int | None = None,
@@ -208,6 +220,9 @@ def list_sets(
     if language:
         where.append("s.language = ?")
         params.append(language)
+    if game:
+        where.append("s.game = ?")
+        params.append(game)
     if code:
         where.append("REPLACE(LOWER(s.abbreviation), '.', '') = ?")
         params.append(normalize_code(code) or code.lower())
@@ -260,6 +275,7 @@ def set_cards(
 def list_cards(
     q: str | None = Query(default=None, description="search card name (any language)"),
     language: str | None = None,
+    game: str | None = Query(default=None, description="game code, e.g. 'pokemon' or 'mtg'"),
     set_uid: str | None = None,
     set_code: str | None = Query(default=None, description="set code, e.g. 'SVI'"),
     number: str | None = Query(default=None, description="card number as printed"),
@@ -271,6 +287,9 @@ def list_cards(
     if language:
         where.append("c.language = ?")
         params.append(language)
+    if game:
+        where.append("c.game = ?")
+        params.append(game)
     if set_uid:
         where.append("c.set_uid = ?")
         params.append(set_uid)
@@ -281,8 +300,8 @@ def list_cards(
         where.append("s.release_year = ?")
         params.append(year)
     if q:
-        where.append("(c.name LIKE ? OR c.name_en LIKE ?)")
-        params.extend([f"%{q}%"] * 2)
+        where.append("(c.name LIKE ? OR c.name_en LIKE ? OR c.subject_name LIKE ?)")
+        params.extend([f"%{q}%"] * 3)
     if number:
         prefix, value = split_number(number)
         if value is not None:
@@ -308,6 +327,7 @@ def lookup(
     set: str = Query(description="set name, English name or set code"),  # noqa: A002
     number: str = Query(description="card number as printed, e.g. '004/165'  or 'TG12'"),
     language: str | None = Query(default=None, description="restrict to one language"),
+    game: str | None = Query(default=None, description="restrict to one game, e.g. 'pokemon'"),
 ) -> dict[str, Any]:
     """Identify a card from what is printed on it.
 
@@ -331,6 +351,9 @@ def lookup(
     if language:
         where.append("c.language = :language")
         parameters["language"] = language
+    if game:
+        where.append("c.game = :game")
+        parameters["game"] = game
     if value is not None:
         where.append(
             "(c.number = :number "

@@ -72,6 +72,7 @@ SOURCE_ORDER_BY_GAME: dict[str, list[str]] = {
     "metazoo": ["tcgcsv"],
     "warhammer": ["tcgcsv"],
     "dicemasters": ["tcgcsv"],
+    "universus": ["tcgcsv"],
 }
 
 
