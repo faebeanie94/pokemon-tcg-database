@@ -443,14 +443,78 @@ def stats() -> dict[str, Any]:
 
 @app.get("/v1/download/workbook", tags=["service"])
 def download_workbook() -> FileResponse:
-    path = EXPORTS / "Pokemon_TCG_Card_Database.xlsx"
+    for name in ("Card_Database.xlsx", "Pokemon_TCG_Card_Database.xlsx"):
+        path = EXPORTS / name
+        if path.exists():
+            return FileResponse(
+                path,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                filename=path.name,
+            )
+    raise HTTPException(status_code=404, detail="workbook has not been exported yet")
+
+
+@app.get("/v1/download/cards.csv", tags=["service"])
+def download_cards_csv() -> FileResponse:
+    """All catalog cards as CSV (uncompressed if present, else gzip)."""
+    plain = EXPORTS / "cards.csv"
+    gzipped = EXPORTS / "cards.csv.gz"
+    if plain.exists():
+        return FileResponse(plain, media_type="text/csv", filename="cards.csv")
+    if gzipped.exists():
+        return FileResponse(
+            gzipped,
+            media_type="application/gzip",
+            filename="cards.csv.gz",
+        )
+    raise HTTPException(status_code=404, detail="cards CSV has not been exported yet")
+
+
+@app.get("/v1/download/cards-by-game.xlsx", tags=["service"])
+def download_cards_by_game() -> FileResponse:
+    """Cards workbook with one sheet per game."""
+    path = EXPORTS / "cards_by_game.xlsx"
     if not path.exists():
-        raise HTTPException(status_code=404, detail="workbook has not been exported yet")
+        raise HTTPException(
+            status_code=404, detail="cards_by_game.xlsx has not been exported yet"
+        )
     return FileResponse(
         path,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         filename=path.name,
     )
+
+
+@app.get("/v1/download/sets.csv", tags=["service"])
+def download_sets_csv() -> FileResponse:
+    path = EXPORTS / "sets.csv"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="sets CSV has not been exported yet")
+    return FileResponse(path, media_type="text/csv", filename="sets.csv")
+
+
+@app.get("/", tags=["service"])
+def download_index() -> dict[str, Any]:
+    """Simple index of downloadable catalog files."""
+    return {
+        "downloads": {
+            "cards_by_game_xlsx": "/v1/download/cards-by-game.xlsx",
+            "cards_csv": "/v1/download/cards.csv",
+            "sets_csv": "/v1/download/sets.csv",
+            "workbook": "/v1/download/workbook",
+            "docs": "/docs",
+        },
+        "files": {
+            "cards_by_game.xlsx": (EXPORTS / "cards_by_game.xlsx").exists(),
+            "cards.csv": (EXPORTS / "cards.csv").exists(),
+            "cards.csv.gz": (EXPORTS / "cards.csv.gz").exists(),
+            "sets.csv": (EXPORTS / "sets.csv").exists(),
+            "workbook": any(
+                (EXPORTS / name).exists()
+                for name in ("Card_Database.xlsx", "Pokemon_TCG_Card_Database.xlsx")
+            ),
+        },
+    }
 
 
 @app.post("/v1/admin/refresh", tags=["service"], dependencies=[Depends(require_admin)])

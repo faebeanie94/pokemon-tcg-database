@@ -16,13 +16,21 @@ from pathlib import Path
 from .config import DB_PATH, EXPORTS
 
 WORKBOOK_NAME = "Card_Database.xlsx"
+CARDS_BY_GAME_NAME = "cards_by_game.xlsx"  # one sheet per game + language
 
 CARD_QUERY = """
 SELECT
     game_name            AS "Game",
     language_name        AS "Language",
     set_name             AS "Set Name",
-    card_number          AS "Card Number",
+    CASE
+      -- Pokémon / TCG printed form: 4/102, 001/198, TG12/198
+      WHEN game <> 'sports'
+           AND card_count IS NOT NULL
+           AND instr(card_number, '/') = 0
+      THEN card_number || '/' || card_count
+      ELSE card_number
+    END                  AS "Card Number",
     COALESCE(display_name, card_name) AS "Card Name",
     subject_name         AS "Subject",
     parallel             AS "Parallel",
@@ -49,7 +57,8 @@ FROM (
            c.name AS card_name, c.name_en AS card_name_en,
            c.subject_name, c.parallel, c.notations,
            c.serial_number, c.print_run, c.display_name,
-           COALESCE(s.card_count_official, s.card_count_loaded) AS card_count
+           -- Prefer the printed set size (official) so Base Set is /102 not loaded count.
+           s.card_count_official AS card_count
     FROM cards c
     JOIN sets s      ON s.set_uid = c.set_uid
     JOIN games g     ON g.code = c.game
@@ -125,6 +134,7 @@ def export_all(db_path: Path = DB_PATH, write_csv: bool = True) -> list[Path]:
     connection.close()
 
     written = [
+        _write_cards_by_game(card_headers, card_rows, game_headers, game_rows),
         _write_workbook(
             card_headers,
             card_rows,
@@ -136,7 +146,7 @@ def export_all(db_path: Path = DB_PATH, write_csv: bool = True) -> list[Path]:
             game_rows,
             built_at[0] if built_at else "",
             sources[0] if sources else "",
-        )
+        ),
     ]
 
     if write_csv:
@@ -157,6 +167,108 @@ def _write_csv(headers: list[str], rows, path: Path, compress: bool = False) -> 
         writer = csv.writer(handle)
         writer.writerow(headers)
         writer.writerows(rows)
+    return path
+
+
+def _sheet_title(name: str, used: set[str]) -> str:
+    """Excel sheet titles: max 31 chars, no ``: \\ / ? * [ ]``."""
+    cleaned = "".join("-" if ch in r"[]:*?/\\" else ch for ch in name)[:31].strip() or "Game"
+    base = cleaned
+    counter = 2
+    while cleaned in used:
+        suffix = f"_{counter}"
+        cleaned = base[: 31 - len(suffix)] + suffix
+        counter += 1
+    used.add(cleaned)
+    return cleaned
+
+
+def _write_cards_by_game(
+    card_headers: list[str],
+    card_rows: list[tuple],
+    game_headers: list[str],
+    game_rows: list[tuple],
+) -> Path:
+    """One worksheet per game + language (e.g. ``Pokemon EN``, ``MTG Japanese``)."""
+    from collections import defaultdict
+
+    from openpyxl import Workbook
+    from openpyxl.cell import WriteOnlyCell
+    from openpyxl.styles import Font
+
+    path = EXPORTS / CARDS_BY_GAME_NAME
+    # (game_name, language_name) -> rows
+    buckets: dict[tuple[str, str], list[tuple]] = defaultdict(list)
+    for row in card_rows:
+        buckets[(str(row[0]), str(row[1]))].append(row)
+
+    # Order games by coverage (largest first), languages by row count within game.
+    game_rank = {str(row[0]): index for index, row in enumerate(game_rows)}
+    counts: dict[tuple[str, str], int] = {key: len(rows) for key, rows in buckets.items()}
+
+    def sort_key(item: tuple[tuple[str, str], list[tuple]]) -> tuple:
+        (game, language), rows = item
+        return (game_rank.get(game, 10_000), -len(rows), language)
+
+    ordered = sorted(buckets.items(), key=sort_key)
+
+    # Short labels so Excel's 31-char sheet limit stays readable.
+    game_abbrev = {
+        "Pokémon TCG": "Pokemon",
+        "Magic: The Gathering": "MTG",
+        "Yu-Gi-Oh!": "YGO",
+        "One Piece Card Game": "OnePiece",
+        "Disney Lorcana": "Lorcana",
+        "Flesh and Blood": "FAB",
+        "Weiss Schwarz": "Weiss",
+        "Dragon Ball Z TCG": "DBZ",
+        "Dragon Ball Super: Masters": "DBS",
+        "Dragon Ball Super: Fusion World": "DBSFW",
+        "Marvel Dice Masters": "DiceMast",
+        "Warhammer Age of Sigmar Champions": "AoSChamp",
+        "Sports & Entertainment Cards": "Sports",
+        "MetaZoo": "MetaZoo",
+        "UniVersus": "UniVersus",
+    }
+    lang_abbrev = {
+        "English": "EN",
+        "French": "FR",
+        "German": "DE",
+        "Spanish": "ES",
+        "Italian": "IT",
+        "Portuguese": "PT",
+        "Portuguese (Brazil)": "PT-BR",
+        "Japanese": "JA",
+        "Korean": "KO",
+        "Chinese (Traditional)": "ZH-TW",
+        "Chinese (Simplified)": "ZH-CN",
+        "Chinese (Simplified, MTG)": "ZHS",
+        "Chinese (Traditional, MTG)": "ZHT",
+        "Indonesian": "ID",
+        "Thai": "TH",
+        "Dutch": "NL",
+        "Polish": "PL",
+        "Russian": "RU",
+        "Undetermined": "UND",
+    }
+
+    workbook = Workbook(write_only=True)
+    used: set[str] = set()
+    for (game, language), rows in ordered:
+        g = game_abbrev.get(game, game)
+        lang = lang_abbrev.get(language, language)
+        title = _sheet_title(f"{g} {lang}", used)
+        sheet = workbook.create_sheet(title)
+        header_cells = []
+        for header in card_headers:
+            cell = WriteOnlyCell(sheet, value=header)
+            cell.font = Font(bold=True)
+            header_cells.append(cell)
+        sheet.append(header_cells)
+        for row in rows:
+            sheet.append(list(row))
+
+    workbook.save(path)
     return path
 
 
