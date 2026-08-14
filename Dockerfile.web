@@ -1,0 +1,57 @@
+# Next.js operator console for Fly.io.
+# Expects the card database on a volume at POKEDB_DB (default /data/pokemon_tcg.sqlite).
+# Do not run pokedb update in this image — seed the volume from a local build.
+
+FROM node:22-bookworm-slim AS deps
+WORKDIR /app
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 make g++ \
+ && rm -rf /var/lib/apt/lists/* \
+ && corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+
+FROM node:22-bookworm-slim AS builder
+WORKDIR /app
+RUN corepack enable
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml next.config.mjs tsconfig.json postcss.config.mjs tailwind.config.ts ./
+COPY src ./src
+RUN mkdir -p public
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm exec next build
+
+FROM node:22-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    POKEDB_DB=/data/pokemon_tcg.sqlite \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && groupadd --system --gid 1001 nodejs \
+ && useradd --system --uid 1001 --gid nodejs nextjs \
+ && mkdir -p /data \
+ && chown nextjs:nodejs /data
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# serverExternalPackages: native binding is not fully traced into standalone.
+COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+
+COPY docker/web-entrypoint.sh /usr/local/bin/web-entrypoint.sh
+RUN chmod +x /usr/local/bin/web-entrypoint.sh
+
+USER nextjs
+EXPOSE 3000
+VOLUME ["/data"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s \
+    CMD curl -fsS http://localhost:3000/api/health || exit 1
+
+ENTRYPOINT ["web-entrypoint.sh"]
+CMD ["node", "server.js"]

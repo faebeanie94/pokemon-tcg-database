@@ -1,4 +1,4 @@
-# pokemon-tcg-database
+# tfg-tcg-database
 
 Multi-game trading and sports card catalog for a grading workflow: Pokémon (all
 languages), other TCGs (Magic, Yu-Gi-Oh, One Piece, Lorcana, …), and curated
@@ -215,6 +215,13 @@ Later refreshes are one command: `pnpm refresh` rebuilds **Pokémon** card data
 `pnpm fetch:mtg`, or `pnpm fetch:onepiece` — see
 [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md). Scryfall is never part of the
 default refresh (hundreds of MB).
+
+### Deploying on Fly.io
+
+The dark-mode console runs at
+[tfg-tcg-database.fly.dev](https://tfg-tcg-database.fly.dev) via
+`Dockerfile.web` + a volume-mounted SQLite file. Seed and refresh steps are in
+[docs/DEPLOY_FLY.md](docs/DEPLOY_FLY.md).
 
 If `build/pokemon_tcg.sqlite` does not exist the app says so and stops, rather
 than serving an empty catalog. Point it elsewhere with `POKEDB_DB`, the same

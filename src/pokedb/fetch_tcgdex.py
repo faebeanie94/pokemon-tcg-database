@@ -16,7 +16,7 @@ import requests
 
 from .config import LANGUAGE_CODES, TCGDEX_API, TCGDEX_RAW
 
-USER_AGENT = "pokemon-tcg-database/1.0 (+https://github.com/)"
+USER_AGENT = "tfg-tcg-database/1.0 (+https://github.com/faebeanie94/tfg-tcg-database)"
 MAX_ATTEMPTS = 5
 WORKERS = 8
 

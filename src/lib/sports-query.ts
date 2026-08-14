@@ -137,7 +137,7 @@ export function parseSportsSetName(raw: string): SportsSetHints {
     }
   }
 
-  let productName = trimmed;
+  let productName: string | undefined = trimmed;
   if (year) {
     productName = productName.replace(new RegExp(`\\b${escapeRegExp(year)}\\b`, "i"), " ");
   }

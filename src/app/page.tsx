@@ -74,6 +74,9 @@ const SPORTS_EXAMPLES = [
 
 const PAGE_SIZE = 25;
 
+const inputClass =
+  "w-full rounded-lg border border-slate-600 bg-surface px-4 py-2.5 text-slate-100 outline-none placeholder:text-slate-500 focus:border-pokeblue focus:ring-2 focus:ring-pokeblue/30";
+
 export default function Home() {
   const [mode, setMode] = useState<Mode>("identify");
   const [query, setQuery] = useState("");
@@ -237,7 +240,7 @@ export default function Home() {
         <h1 className="text-2xl font-black tracking-tight text-pokeblueDark">
           Card lookup
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-400">
           Identify a card from what is printed on it.
           {totalCards !== null && (
             <> {totalCards.toLocaleString()} printings in the catalog.</>
@@ -245,7 +248,7 @@ export default function Home() {
         </p>
       </header>
 
-      <div className="mb-4 inline-flex rounded-lg border border-slate-200 bg-white p-1 text-sm shadow-sm">
+      <div className="mb-4 inline-flex rounded-lg border border-slate-700 bg-surface-raised p-1 text-sm shadow-sm">
         <ModeButton current={mode} value="identify" onSelect={setMode}>
           Identify a card
         </ModeButton>
@@ -254,16 +257,16 @@ export default function Home() {
         </ModeButton>
       </div>
 
-      <section className="mb-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
+      <section className="mb-6 grid gap-3 rounded-2xl border border-slate-700 bg-surface-raised p-5 shadow-sm md:grid-cols-2">
         <div>
-          <label htmlFor="game" className="mb-1 block text-sm font-medium text-slate-600">
+          <label htmlFor="game" className="mb-1 block text-sm font-medium text-slate-400">
             Game
           </label>
           <select
             id="game"
             value={game}
             onChange={(e) => setGame(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue"
+            className={inputClass}
           >
             <option value="">Any game</option>
             {games.map((g) => (
@@ -276,7 +279,7 @@ export default function Home() {
         <div>
           <label
             htmlFor="language"
-            className="mb-1 block text-sm font-medium text-slate-600"
+            className="mb-1 block text-sm font-medium text-slate-400"
           >
             Language
           </label>
@@ -284,7 +287,7 @@ export default function Home() {
             id="language"
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue"
+            className={inputClass}
           >
             <option value="">Any language</option>
             {languages.map((l) => (
@@ -347,7 +350,7 @@ export default function Home() {
                     setSportsNumber(example.number);
                     setSportsSerial(example.serial ?? "");
                   }}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
+                  className="rounded-full border border-slate-600 bg-surface-muted px-2.5 py-1 font-medium text-slate-300 transition hover:border-pokeblue hover:text-pokeblue"
                 >
                   {example.label}
                 </button>
@@ -390,7 +393,7 @@ export default function Home() {
                     key={example}
                     type="button"
                     onClick={() => setQuery(example)}
-                    className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue"
+                    className="rounded-full border border-slate-600 bg-surface-muted px-2.5 py-1 font-medium text-slate-300 transition hover:border-pokeblue hover:text-pokeblue"
                   >
                     {example}
                   </button>
@@ -402,7 +405,7 @@ export default function Home() {
       </section>
 
       {error && (
-        <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+        <p className="mb-6 rounded-lg border border-red-800/60 bg-red-950/50 px-4 py-3 text-sm text-red-300">
           {error}
         </p>
       )}
@@ -439,8 +442,8 @@ function ModeButton({
       aria-pressed={active}
       className={`rounded-md px-3 py-1.5 font-medium transition ${
         active
-          ? "bg-pokeblue text-white"
-          : "text-slate-600 hover:text-pokeblueDark"
+          ? "bg-pokeblue text-slate-950"
+          : "text-slate-400 hover:text-pokeblueDark"
       }`}
     >
       {children}
@@ -465,7 +468,7 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-sm font-medium text-slate-600">
+      <label htmlFor={id} className="mb-1 block text-sm font-medium text-slate-400">
         {label}
       </label>
       <input
@@ -474,7 +477,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-pokeblue focus:ring-2 focus:ring-pokeblue/30"
+        className={inputClass}
       />
     </div>
   );
@@ -498,15 +501,15 @@ function IdentifyResults({
           {result.candidates.map((candidate, index) => (
             <li
               key={candidate.card.card_uid}
-              className={`rounded-xl border bg-white p-4 shadow-sm ${
+              className={`rounded-xl border bg-surface-raised p-4 shadow-sm ${
                 index === 0 && result.unambiguous
-                  ? "border-emerald-300 ring-1 ring-emerald-200"
-                  : "border-slate-200"
+                  ? "border-emerald-600/60 ring-1 ring-emerald-500/30"
+                  : "border-slate-700"
               }`}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <CardNames card={candidate.card} />
-                <span className="text-xs font-semibold text-slate-400">
+                <span className="text-xs font-semibold text-slate-500">
                   score {candidate.score}
                 </span>
               </div>
@@ -516,7 +519,7 @@ function IdentifyResults({
                 {candidate.matchedOn.map((reason) => (
                   <span
                     key={reason}
-                    className="rounded-full border border-slate-200 px-2 py-0.5 text-slate-500"
+                    className="rounded-full border border-slate-600 px-2 py-0.5 text-slate-400"
                   >
                     {reason}
                   </span>
@@ -550,11 +553,11 @@ function BrowseResults({
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-        <span className="text-slate-500">
+        <span className="text-slate-400">
           {total === 0
             ? "No cards match those filters."
             : `Showing ${first.toLocaleString()}–${last.toLocaleString()} of ${total.toLocaleString()}`}
-          {loading && <span className="ml-2 text-slate-400">searching…</span>}
+          {loading && <span className="ml-2 text-slate-500">searching…</span>}
         </span>
         <div className="flex items-center gap-2">
           <PageButton disabled={offset === 0} onClick={() => onPage(Math.max(offset - limit, 0))}>
@@ -571,7 +574,7 @@ function BrowseResults({
           {cards.map((card) => (
             <li
               key={card.card_uid}
-              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+              className="rounded-xl border border-slate-700 bg-surface-raised p-4 shadow-sm"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <CardNames card={card} />
@@ -602,7 +605,7 @@ function PageButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-600 transition hover:border-pokeblue hover:text-pokeblue disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-300 disabled:hover:text-slate-600"
+      className="rounded-lg border border-slate-600 bg-surface-raised px-3 py-1.5 font-medium text-slate-300 transition hover:border-pokeblue hover:text-pokeblue disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-600 disabled:hover:text-slate-300"
     >
       {children}
     </button>
@@ -638,16 +641,16 @@ function Interpretation({
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-      <span className="text-slate-500">
+      <span className="text-slate-400">
         Read as: {parts.length ? parts.join(", ") : "free text"}
       </span>
-      {loading && <span className="text-slate-400">searching…</span>}
+      {loading && <span className="text-slate-500">searching…</span>}
       {!loading && (
         <span
           className={
             result.unambiguous
-              ? "rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700"
-              : "rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700"
+              ? "rounded-full bg-emerald-950/60 px-2.5 py-0.5 text-xs font-semibold text-emerald-300"
+              : "rounded-full bg-amber-950/60 px-2.5 py-0.5 text-xs font-semibold text-amber-300"
           }
         >
           {result.unambiguous ? "single confident match" : "needs a decision"}
@@ -661,12 +664,12 @@ function CardNames({ card }: { card: CatalogCard }) {
   const title = card.display_name || card.name;
   return (
     <div>
-      <span className="font-bold text-slate-800">{title}</span>
+      <span className="font-bold text-slate-100">{title}</span>
       {card.english_name && card.english_name !== title && (
-        <span className="ml-2 text-sm text-slate-500">{card.english_name}</span>
+        <span className="ml-2 text-sm text-slate-400">{card.english_name}</span>
       )}
       {card.parallel && (
-        <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+        <span className="ml-2 rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-slate-300">
           {card.parallel}
         </span>
       )}
@@ -676,31 +679,31 @@ function CardNames({ card }: { card: CatalogCard }) {
 
 function CardLocation({ card }: { card: CatalogCard }) {
   return (
-    <div className="mt-1 text-sm text-slate-600">
-      <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs uppercase text-slate-500">
+    <div className="mt-1 text-sm text-slate-300">
+      <span className="mr-2 rounded bg-surface-muted px-1.5 py-0.5 text-xs uppercase text-slate-400">
         {card.game}
       </span>
       <span className="font-medium">{card.set_name}</span>
       {card.set_code && (
-        <span className="text-slate-400"> ({card.set_code})</span>
+        <span className="text-slate-500"> ({card.set_code})</span>
       )}
       {card.manufacturer && (
-        <span className="text-slate-400"> · {card.manufacturer}</span>
+        <span className="text-slate-500"> · {card.manufacturer}</span>
       )}
-      <span className="text-slate-400"> · </span>
+      <span className="text-slate-500"> · </span>
       <span>
         #{card.card_number}
         {card.printed_total ? `/${card.printed_total}` : ""}
       </span>
       {card.serial_number && card.print_run && (
         <>
-          <span className="text-slate-400"> · </span>
+          <span className="text-slate-500"> · </span>
           <span>
             {card.serial_number}/{card.print_run}
           </span>
         </>
       )}
-      <span className="text-slate-400"> · </span>
+      <span className="text-slate-500"> · </span>
       <span className="uppercase">{card.language}</span>
     </div>
   );
@@ -708,7 +711,7 @@ function CardLocation({ card }: { card: CatalogCard }) {
 
 function SourceId({ card }: { card: CatalogCard }) {
   return (
-    <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
+    <code className="rounded bg-surface-muted px-1.5 py-0.5 text-xs text-slate-300">
       {card.card_uid}
     </code>
   );
@@ -716,7 +719,7 @@ function SourceId({ card }: { card: CatalogCard }) {
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
+    <p className="rounded-xl border border-dashed border-slate-600 p-8 text-center text-slate-500">
       {children}
     </p>
   );

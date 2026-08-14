@@ -8,8 +8,18 @@ build
 data
 exports
 tests
+.pytest_cache
 **/__pycache__
 *.pyc
 .idea
-src/app
-src/lib
+tsconfig.tsbuildinfo
+# Large dump workbooks (not needed for Next or the Python API image).
+scryfall_cards.xlsx
+cardtrader_catalog.xlsx
+pokewallet_cards.xlsx
+apitcg_catalog.xlsx
+tcgdex_cards.xlsx
+pokemontcgio_cards.xlsx
+composed_cards.csv.gz
+apis
+sources
