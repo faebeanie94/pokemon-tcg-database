@@ -1,5 +1,5 @@
 {
-  "name": "pokemon-tcg-database",
+  "name": "tfg-tcg-database",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
     "start": "next start -p 3000",
     "lint": "next lint",
     "build:index": "tsx scripts/build-match-index.ts",
+    "compose": "python3 scripts/compose_xlsx_catalog.py && PYTHONPATH=src python3 -m pokedb build && pnpm build:index",
     "refresh": "PYTHONPATH=src python3 -m pokedb update && pnpm build:index",
     "refresh:games": "PYTHONPATH=src python3 -m pokedb update --source tcgcsv --source ygoprodeck --source lorcast --source goagain --source apitcg && pnpm build:index",
     "fetch:mtg": "PYTHONPATH=src python3 -m pokedb fetch --source scryfall",
